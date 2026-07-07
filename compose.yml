@@ -2,17 +2,30 @@ services:
   php:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ../.docker/php/Dockerfile
     container_name: wending-planner-php
     working_dir: /var/www
     volumes:
       - ./:/var/www
-      - /var/www/public/build
     ports:
       - "8000:8000"
     command: php artisan serve --host=0.0.0.0 --port=8000
     depends_on:
       - db
+
+  node:
+    build:
+      context: ./resources
+      dockerfile: ../.docker/node/Dockerfile
+    container_name: wending-planner-node
+    working_dir: /app
+    volumes:
+      - ./resources:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=development
 
   db:
     image: postgres:16
