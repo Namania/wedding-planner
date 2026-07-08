@@ -4,6 +4,7 @@ import './assets/css/main.css'
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import PrimeVue from 'primevue/config'
+import ConfirmationService from 'primevue/confirmationservice'
 import Lara from '@primevue/themes/lara'
 
 import App from './App.vue'
@@ -22,5 +23,6 @@ app.use(PrimeVue, {
         }
     }
 })
+app.use(ConfirmationService)
 
 app.mount('#app')
