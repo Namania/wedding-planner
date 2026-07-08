@@ -1,0 +1,1862 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Wending Planner API",
+        "description": "API de gestion pour la préparation du mariage.",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost",
+            "description": "Serveur API"
+        }
+    ],
+    "paths": {
+        "/api/budget": {
+            "get": {
+                "tags": [
+                    "Budget"
+                ],
+                "summary": "Budget total du mariage",
+                "operationId": "81224e9b5e1239c220813c3f60b151a5",
+                "responses": {
+                    "200": {
+                        "description": "Budget courant",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Budget"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Budget"
+                ],
+                "summary": "Mettre à jour le budget total",
+                "operationId": "067944cb6f0ac60046048f967a465a9f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BudgetInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Budget mis à jour",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Budget"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    }
+                }
+            }
+        },
+        "/api/caterers": {
+            "get": {
+                "tags": [
+                    "Caterers"
+                ],
+                "summary": "Liste des traiteurs",
+                "operationId": "6c06d87fca3e7ea4c5e6074370054a27",
+                "responses": {
+                    "200": {
+                        "description": "Liste des traiteurs, par ordre alphabétique",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Caterer"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Caterers"
+                ],
+                "summary": "Créer un traiteur",
+                "operationId": "769a600c6b094f666f99f01080fd1d7e",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CatererInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Traiteur créé",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Caterer"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    }
+                }
+            }
+        },
+        "/api/caterers/{caterer}": {
+            "get": {
+                "tags": [
+                    "Caterers"
+                ],
+                "summary": "Détail d'un traiteur",
+                "operationId": "e497ff301cd7dc50c35622b96cef16ee",
+                "parameters": [
+                    {
+                        "name": "caterer",
+                        "in": "path",
+                        "description": "ID du traiteur",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Traiteur trouvé",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Caterer"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Traiteur introuvable"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Caterers"
+                ],
+                "summary": "Mettre à jour un traiteur",
+                "operationId": "e9097f6feea40404d2d2c6b66073e4b4",
+                "parameters": [
+                    {
+                        "name": "caterer",
+                        "in": "path",
+                        "description": "ID du traiteur",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CatererInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Traiteur mis à jour",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Caterer"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Traiteur introuvable"
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Caterers"
+                ],
+                "summary": "Supprimer un traiteur",
+                "operationId": "f637e5fe033e7ff6346a2e1dd46c98b6",
+                "parameters": [
+                    {
+                        "name": "caterer",
+                        "in": "path",
+                        "description": "ID du traiteur",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Traiteur supprimé",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Caterer"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Traiteur introuvable"
+                    }
+                }
+            }
+        },
+        "/api/metrics": {
+            "get": {
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "Metrics",
+                "operationId": "39b6f5cc42e3574a76f273d700facf2c",
+                "responses": {
+                    "200": {
+                        "description": "Metrics pour le dashboard"
+                    }
+                }
+            }
+        },
+        "/api/florists": {
+            "get": {
+                "tags": [
+                    "Florists"
+                ],
+                "summary": "Liste des fleuristes",
+                "operationId": "2354eec6da8eb9bc776a5e203a2d28af",
+                "responses": {
+                    "200": {
+                        "description": "Liste des fleuristes, par ordre alphabétique",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Florist"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Florists"
+                ],
+                "summary": "Créer un fleuriste",
+                "operationId": "d43fb8e450e23ed9cee2e7e1abd0fc4a",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/FloristInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Fleuriste créé",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Florist"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    }
+                }
+            }
+        },
+        "/api/florists/{florist}": {
+            "get": {
+                "tags": [
+                    "Florists"
+                ],
+                "summary": "Détail d'un fleuriste",
+                "operationId": "4621b2e19106a61c41c0cbf79a623403",
+                "parameters": [
+                    {
+                        "name": "florist",
+                        "in": "path",
+                        "description": "ID du fleuriste",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Fleuriste trouvé",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Florist"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Fleuriste introuvable"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Florists"
+                ],
+                "summary": "Mettre à jour un fleuriste",
+                "operationId": "fb254ece16ae3bcfd0878886d360e3cd",
+                "parameters": [
+                    {
+                        "name": "florist",
+                        "in": "path",
+                        "description": "ID du fleuriste",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/FloristInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Fleuriste mis à jour",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Florist"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Fleuriste introuvable"
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Florists"
+                ],
+                "summary": "Supprimer un fleuriste",
+                "operationId": "b53c7746e8555b7586d07885deaaaa83",
+                "parameters": [
+                    {
+                        "name": "florist",
+                        "in": "path",
+                        "description": "ID du fleuriste",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Fleuriste supprimé",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Florist"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Fleuriste introuvable"
+                    }
+                }
+            }
+        },
+        "/api/guests": {
+            "get": {
+                "tags": [
+                    "Guests"
+                ],
+                "summary": "Liste des invités",
+                "operationId": "ba13faba9c30d75ce7386db1cee72e22",
+                "responses": {
+                    "200": {
+                        "description": "Liste des invités, du plus récent au plus ancien",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Guest"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Guests"
+                ],
+                "summary": "Créer un invité",
+                "operationId": "abf1a99cd422a8b8b54c4a4ff63461f5",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GuestInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Invité créé",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Guest"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    }
+                }
+            }
+        },
+        "/api/guests/{guest}": {
+            "get": {
+                "tags": [
+                    "Guests"
+                ],
+                "summary": "Détail d'un invité",
+                "operationId": "c27b3910a77ad641bba7a55390eab729",
+                "parameters": [
+                    {
+                        "name": "guest",
+                        "in": "path",
+                        "description": "ID de l'invité",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Invité trouvé",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Guest"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Invité introuvable"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Guests"
+                ],
+                "summary": "Mettre à jour un invité",
+                "operationId": "ecb359e8f6f5766a8149d6e6e1950d67",
+                "parameters": [
+                    {
+                        "name": "guest",
+                        "in": "path",
+                        "description": "ID de l'invité",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GuestInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Invité mis à jour",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Guest"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Invité introuvable"
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Guests"
+                ],
+                "summary": "Supprimer un invité",
+                "operationId": "f8a89aac33a3f755bc0e3493f199b819",
+                "parameters": [
+                    {
+                        "name": "guest",
+                        "in": "path",
+                        "description": "ID de l'invité",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Invité supprimé",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Guest"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Invité introuvable"
+                    }
+                }
+            }
+        },
+        "/api/seating-tables": {
+            "get": {
+                "tags": [
+                    "SeatingTables"
+                ],
+                "summary": "Liste des tables du plan de table, avec leurs invités",
+                "operationId": "0bdffd1a23c686921d6dc843766a9a1b",
+                "responses": {
+                    "200": {
+                        "description": "Liste des tables, par ordre alphabétique",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/SeatingTable"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "SeatingTables"
+                ],
+                "summary": "Créer une table",
+                "operationId": "e526ffcefdde4695920e4e121e162689",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SeatingTableInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Table créée",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SeatingTable"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    }
+                }
+            }
+        },
+        "/api/seating-tables/{seating_table}": {
+            "get": {
+                "tags": [
+                    "SeatingTables"
+                ],
+                "summary": "Détail d'une table",
+                "operationId": "e4f0b501b2f6d50fca3a8715fbd26843",
+                "parameters": [
+                    {
+                        "name": "seating_table",
+                        "in": "path",
+                        "description": "ID de la table",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Table trouvée",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SeatingTable"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Table introuvable"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "SeatingTables"
+                ],
+                "summary": "Mettre à jour une table",
+                "operationId": "40c8c9f788ff3ac802d34de61ac0ce76",
+                "parameters": [
+                    {
+                        "name": "seating_table",
+                        "in": "path",
+                        "description": "ID de la table",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SeatingTableInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Table mise à jour",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SeatingTable"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Table introuvable"
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "SeatingTables"
+                ],
+                "summary": "Supprimer une table (les invités redeviennent non assignés)",
+                "operationId": "ecb60d2afb4d4a55a66e9209a8c717cf",
+                "parameters": [
+                    {
+                        "name": "seating_table",
+                        "in": "path",
+                        "description": "ID de la table",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Table supprimée",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SeatingTable"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Table introuvable"
+                    }
+                }
+            }
+        },
+        "/api/tasks": {
+            "get": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Liste des tâches",
+                "operationId": "471d938a3bfaeb6fbd981d7c3e2728b0",
+                "responses": {
+                    "200": {
+                        "description": "Liste des tâches, triées par échéance (sans échéance en dernier)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Task"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Créer une tâche",
+                "operationId": "f803ebdb2300acdb7e93bbe8d0b9a2e8",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TaskInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Tâche créée",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Task"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    }
+                }
+            }
+        },
+        "/api/tasks/{task}": {
+            "get": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Détail d'une tâche",
+                "operationId": "9736e8dac4ca267e196496c4b790c757",
+                "parameters": [
+                    {
+                        "name": "task",
+                        "in": "path",
+                        "description": "ID de la tâche",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tâche trouvée",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Task"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Tâche introuvable"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Mettre à jour une tâche",
+                "operationId": "4732012736ffb7728b7e6b7949d3c140",
+                "parameters": [
+                    {
+                        "name": "task",
+                        "in": "path",
+                        "description": "ID de la tâche",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TaskInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Tâche mise à jour",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Task"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Tâche introuvable"
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Supprimer une tâche",
+                "operationId": "3aa12cf460ff0476704f02693959d7de",
+                "parameters": [
+                    {
+                        "name": "task",
+                        "in": "path",
+                        "description": "ID de la tâche",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tâche supprimée",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Task"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Tâche introuvable"
+                    }
+                }
+            }
+        },
+        "/api/timeline-events": {
+            "get": {
+                "tags": [
+                    "TimelineEvents"
+                ],
+                "summary": "Liste des événements du planning",
+                "operationId": "34006a9bb3bfd9a6e1218f67cf8324b8",
+                "responses": {
+                    "200": {
+                        "description": "Liste des événements, par ordre chronologique",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/TimelineEvent"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "TimelineEvents"
+                ],
+                "summary": "Créer un événement",
+                "operationId": "056ec664794b816d1f71069cdd166d58",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TimelineEventInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Événement créé",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TimelineEvent"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    }
+                }
+            }
+        },
+        "/api/timeline-events/{timeline_event}": {
+            "get": {
+                "tags": [
+                    "TimelineEvents"
+                ],
+                "summary": "Détail d'un événement",
+                "operationId": "c6aa184b18054746dac2574f65cf38a9",
+                "parameters": [
+                    {
+                        "name": "timeline_event",
+                        "in": "path",
+                        "description": "ID de l'événement",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Événement trouvé",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TimelineEvent"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Événement introuvable"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "TimelineEvents"
+                ],
+                "summary": "Mettre à jour un événement",
+                "operationId": "b2e31e6cb66758939d6b630def9af057",
+                "parameters": [
+                    {
+                        "name": "timeline_event",
+                        "in": "path",
+                        "description": "ID de l'événement",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TimelineEventInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Événement mis à jour",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TimelineEvent"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Événement introuvable"
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "TimelineEvents"
+                ],
+                "summary": "Supprimer un événement",
+                "operationId": "54f2781e5c73b37ddd220766aae521ce",
+                "parameters": [
+                    {
+                        "name": "timeline_event",
+                        "in": "path",
+                        "description": "ID de l'événement",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Événement supprimé",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TimelineEvent"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Événement introuvable"
+                    }
+                }
+            }
+        },
+        "/api/venues": {
+            "get": {
+                "tags": [
+                    "Venues"
+                ],
+                "summary": "Liste des lieux",
+                "operationId": "a881d18c3a7e18c81ce59a084693b722",
+                "responses": {
+                    "200": {
+                        "description": "Liste des lieux, par ordre alphabétique",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Venue"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Venues"
+                ],
+                "summary": "Créer un lieu",
+                "operationId": "ae68cb3e25e8ba6f89cfc1348dd0dc0d",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VenueInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Lieu créé",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Venue"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    }
+                }
+            }
+        },
+        "/api/venues/{venue}": {
+            "get": {
+                "tags": [
+                    "Venues"
+                ],
+                "summary": "Détail d'un lieu",
+                "operationId": "bcba983df0460c53dfb42f86cecbd145",
+                "parameters": [
+                    {
+                        "name": "venue",
+                        "in": "path",
+                        "description": "ID du lieu",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lieu trouvé",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Venue"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Lieu introuvable"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Venues"
+                ],
+                "summary": "Mettre à jour un lieu",
+                "operationId": "250d1147d5d205e4b86d315a783df3cf",
+                "parameters": [
+                    {
+                        "name": "venue",
+                        "in": "path",
+                        "description": "ID du lieu",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VenueInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Lieu mis à jour",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Venue"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Lieu introuvable"
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Venues"
+                ],
+                "summary": "Supprimer un lieu",
+                "operationId": "4f0ae9d6b08485715b2d684dab49db0d",
+                "parameters": [
+                    {
+                        "name": "venue",
+                        "in": "path",
+                        "description": "ID du lieu",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lieu supprimé",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Venue"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Lieu introuvable"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Budget": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "total": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 20000
+                    }
+                },
+                "type": "object"
+            },
+            "BudgetInput": {
+                "required": [
+                    "total"
+                ],
+                "properties": {
+                    "total": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 20000,
+                        "minimum": 0
+                    }
+                },
+                "type": "object"
+            },
+            "Caterer": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Saveurs & Co"
+                    },
+                    "price_per_person": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 65
+                    },
+                    "phone": {
+                        "type": "string",
+                        "example": "0612345678",
+                        "nullable": true
+                    },
+                    "website": {
+                        "type": "string",
+                        "format": "uri",
+                        "example": "https://saveurs-and-co.fr",
+                        "nullable": true
+                    },
+                    "service_type": {
+                        "type": "string",
+                        "example": "seated",
+                        "nullable": true,
+                        "enum": [
+                            "cocktail",
+                            "cocktail_dinatoire",
+                            "seated",
+                            "buffet",
+                            "food_truck",
+                            "brunch",
+                            "live_cooking"
+                        ]
+                    },
+                    "note": {
+                        "type": "string",
+                        "example": "Bonne dégustation, menu végétarien disponible.",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "CatererInput": {
+                "required": [
+                    "name",
+                    "price_per_person"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "example": "Saveurs & Co",
+                        "maxLength": 255
+                    },
+                    "price_per_person": {
+                        "type": "number",
+                        "format": "float",
+                        "minimum": 0
+                    },
+                    "phone": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "website": {
+                        "type": "string",
+                        "format": "uri",
+                        "nullable": true
+                    },
+                    "service_type": {
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                            "cocktail",
+                            "cocktail_dinatoire",
+                            "seated",
+                            "buffet",
+                            "food_truck",
+                            "brunch",
+                            "live_cooking"
+                        ]
+                    },
+                    "note": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "Florist": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Fleurs de Margaux"
+                    },
+                    "price": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 1200
+                    },
+                    "phone": {
+                        "type": "string",
+                        "example": "0612345678",
+                        "nullable": true
+                    },
+                    "website": {
+                        "type": "string",
+                        "format": "uri",
+                        "example": "https://fleurs-de-margaux.fr",
+                        "nullable": true
+                    },
+                    "style": {
+                        "type": "string",
+                        "example": "champetre",
+                        "nullable": true,
+                        "enum": [
+                            "champetre",
+                            "romantique",
+                            "moderne",
+                            "exotique",
+                            "boheme",
+                            "classique",
+                            "luxueux"
+                        ]
+                    },
+                    "note": {
+                        "type": "string",
+                        "example": "Très bon feeling, propose des fleurs de saison.",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "FloristInput": {
+                "required": [
+                    "name",
+                    "price"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "example": "Fleurs de Margaux",
+                        "maxLength": 255
+                    },
+                    "price": {
+                        "type": "number",
+                        "format": "float",
+                        "minimum": 0
+                    },
+                    "phone": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "website": {
+                        "type": "string",
+                        "format": "uri",
+                        "nullable": true
+                    },
+                    "style": {
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                            "champetre",
+                            "romantique",
+                            "moderne",
+                            "exotique",
+                            "boheme",
+                            "classique",
+                            "luxueux"
+                        ]
+                    },
+                    "note": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "Guest": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Jean Dupont"
+                    },
+                    "role": {
+                        "type": "string",
+                        "example": "witness",
+                        "nullable": true,
+                        "enum": [
+                            "witness",
+                            "groomsman",
+                            "bridesmaid"
+                        ]
+                    },
+                    "confirmed": {
+                        "type": "boolean",
+                        "example": true,
+                        "nullable": true
+                    },
+                    "seating_table_id": {
+                        "type": "integer",
+                        "example": 1,
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "GuestInput": {
+                "required": [
+                    "name"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "example": "Jean Dupont",
+                        "maxLength": 255
+                    },
+                    "role": {
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                            "witness",
+                            "groomsman",
+                            "bridesmaid"
+                        ]
+                    },
+                    "confirmed": {
+                        "type": "boolean",
+                        "nullable": true
+                    },
+                    "seating_table_id": {
+                        "type": "integer",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "SeatingTable": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Table 1"
+                    },
+                    "capacity": {
+                        "type": "integer",
+                        "example": 8
+                    },
+                    "guests": {
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "id": {
+                                    "type": "integer"
+                                },
+                                "name": {
+                                    "type": "string"
+                                },
+                                "confirmed": {
+                                    "type": "boolean",
+                                    "nullable": true
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "SeatingTableInput": {
+                "required": [
+                    "name",
+                    "capacity"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "example": "Table 1",
+                        "maxLength": 255
+                    },
+                    "capacity": {
+                        "type": "integer",
+                        "example": 8,
+                        "minimum": 1
+                    }
+                },
+                "type": "object"
+            },
+            "Task": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Réserver la salle"
+                    },
+                    "category": {
+                        "type": "string",
+                        "example": "prestataires",
+                        "nullable": true,
+                        "enum": [
+                            "administratif",
+                            "prestataires",
+                            "tenues",
+                            "deco",
+                            "invitations",
+                            "beaute",
+                            "logistique",
+                            "autre"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "example": "todo",
+                        "enum": [
+                            "todo",
+                            "in_progress",
+                            "done"
+                        ]
+                    },
+                    "due_date": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2027-03-15",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "TaskInput": {
+                "required": [
+                    "title"
+                ],
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "example": "Réserver la salle",
+                        "maxLength": 255
+                    },
+                    "category": {
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                            "administratif",
+                            "prestataires",
+                            "tenues",
+                            "deco",
+                            "invitations",
+                            "beaute",
+                            "logistique",
+                            "autre"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "todo",
+                            "in_progress",
+                            "done"
+                        ]
+                    },
+                    "due_date": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "TimelineEvent": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Cérémonie"
+                    },
+                    "starts_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2027-03-20T14:00:00+01:00"
+                    },
+                    "note": {
+                        "type": "string",
+                        "example": "Prévoir les alliances",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "TimelineEventInput": {
+                "required": [
+                    "title",
+                    "starts_at"
+                ],
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "example": "Cérémonie",
+                        "maxLength": 255
+                    },
+                    "starts_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "note": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "Venue": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Domaine des Roses"
+                    },
+                    "website": {
+                        "type": "string",
+                        "format": "uri",
+                        "example": "https://domaine-des-roses.fr",
+                        "nullable": true
+                    },
+                    "maps_url": {
+                        "type": "string",
+                        "format": "uri",
+                        "example": "https://maps.google.com/?q=Domaine+des+Roses",
+                        "nullable": true
+                    },
+                    "price": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 3500
+                    },
+                    "note": {
+                        "type": "string",
+                        "example": "Beau parc, mais salle un peu petite pour 80 invités.",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "VenueInput": {
+                "required": [
+                    "name",
+                    "price"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "example": "Domaine des Roses",
+                        "maxLength": 255
+                    },
+                    "website": {
+                        "type": "string",
+                        "format": "uri",
+                        "nullable": true
+                    },
+                    "maps_url": {
+                        "type": "string",
+                        "format": "uri",
+                        "nullable": true
+                    },
+                    "price": {
+                        "type": "number",
+                        "format": "float",
+                        "minimum": 0
+                    },
+                    "note": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Budget",
+            "description": "Budget"
+        },
+        {
+            "name": "Caterers",
+            "description": "Caterers"
+        },
+        {
+            "name": "Dashboard",
+            "description": "Dashboard"
+        },
+        {
+            "name": "Florists",
+            "description": "Florists"
+        },
+        {
+            "name": "Guests",
+            "description": "Guests"
+        },
+        {
+            "name": "SeatingTables",
+            "description": "SeatingTables"
+        },
+        {
+            "name": "Tasks",
+            "description": "Tasks"
+        },
+        {
+            "name": "TimelineEvents",
+            "description": "TimelineEvents"
+        },
+        {
+            "name": "Venues",
+            "description": "Venues"
+        }
+    ]
+}

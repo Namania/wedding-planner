@@ -5,20 +5,70 @@
         <div class="flex flex-col justify-between h-full pb-4">
 
             <nav class="flex flex-col gap-1.5 mt-4">
-                <span class="text-xs font-bold uppercase tracking-wider text-muted-color px-3 mb-2 block">
-                    Mon Espace
-                </span>
-
                 <router-link to="/" @click="visible = false"
                     class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-color hover:bg-surface-100 dark:hover:bg-surface-800 font-medium transition-all"
                     exact-active-class="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 !font-semibold">
                     <i class="pi pi-th-large"></i> <span>Tableau de bord</span>
                 </router-link>
 
+                <span class="text-xs font-bold uppercase tracking-wider text-muted-color px-3 mb-1 mt-3 block">
+                    Invités
+                </span>
+
                 <router-link to="/guests" @click="visible = false"
                     class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-color hover:bg-surface-100 dark:hover:bg-surface-800 font-medium transition-all"
                     exact-active-class="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 !font-semibold">
                     <i class="pi pi-users"></i> <span>Liste d'invités</span>
+                </router-link>
+
+                <router-link to="/seating" @click="visible = false"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-color hover:bg-surface-100 dark:hover:bg-surface-800 font-medium transition-all"
+                    exact-active-class="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 !font-semibold">
+                    <i class="pi pi-objects-column"></i> <span>Plan de table</span>
+                </router-link>
+
+                <span class="text-xs font-bold uppercase tracking-wider text-muted-color px-3 mb-1 mt-3 block">
+                    Prestataires
+                </span>
+
+                <router-link to="/venues" @click="visible = false"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-color hover:bg-surface-100 dark:hover:bg-surface-800 font-medium transition-all"
+                    exact-active-class="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 !font-semibold">
+                    <i class="pi pi-map-marker"></i> <span>Lieux</span>
+                </router-link>
+
+                <router-link to="/caterers" @click="visible = false"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-color hover:bg-surface-100 dark:hover:bg-surface-800 font-medium transition-all"
+                    exact-active-class="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 !font-semibold">
+                    <i class="pi pi-shop"></i> <span>Traiteurs</span>
+                </router-link>
+
+                <router-link to="/florists" @click="visible = false"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-color hover:bg-surface-100 dark:hover:bg-surface-800 font-medium transition-all"
+                    exact-active-class="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 !font-semibold">
+                    <i class="pi pi-sun"></i> <span>Fleuristes</span>
+                </router-link>
+
+                <span class="text-xs font-bold uppercase tracking-wider text-muted-color px-3 mb-1 mt-3 block">
+                    Organisation
+                </span>
+
+                <router-link to="/budget" @click="visible = false"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-color hover:bg-surface-100 dark:hover:bg-surface-800 font-medium transition-all"
+                    exact-active-class="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 !font-semibold">
+                    <i class="pi pi-wallet"></i> <span>Budget</span>
+                </router-link>
+
+                <router-link to="/tasks" @click="visible = false"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-color hover:bg-surface-100 dark:hover:bg-surface-800 font-medium transition-all"
+                    exact-active-class="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 !font-semibold">
+                    <i class="pi pi-list-check"></i> <span>Checklist</span>
+                </router-link>
+
+                <router-link to="/timeline" @click="visible = false"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-color hover:bg-surface-100 dark:hover:bg-surface-800 font-medium transition-all"
+                    exact-active-class="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 !font-semibold">
+                    <i class="pi pi-calendar"></i> <span>Planning</span>
                 </router-link>
             </nav>
 
@@ -27,7 +77,7 @@
                 <Avatar label="M" shape="circle" class="bg-indigo-600 text-white font-bold" />
                 <div class="flex flex-col">
                     <span class="text-sm font-semibold">Margaux & Mael</span>
-                    <span class="text-xs text-muted-color">01 Janvier 2000</span>
+                    <span class="text-xs text-muted-color">{{ weddingStore.formattedDate }}</span>
                 </div>
             </div>
 
@@ -38,6 +88,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import Drawer from 'primevue/drawer'
+import { useWeddingStore } from '@/stores/wedding'
 
 const visible = ref<boolean>(false)
+const weddingStore = useWeddingStore()
 </script>

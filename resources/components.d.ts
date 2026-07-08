@@ -18,9 +18,11 @@ declare module 'vue' {
     Layout: typeof import('./src/components/Layout.vue')['default']
     LayoutPanel: typeof import('./src/components/LayoutPanel.vue')['default']
     MenuToogle: typeof import('./src/components/MenuToogle.vue')['default']
+    RadialMeter: typeof import('./src/components/RadialMeter.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Sidebar: typeof import('primevue/sidebar')['default']
+    Skeleton: typeof import('primevue/skeleton')['default']
     ThemeToggle: typeof import('./src/components/ThemeToggle.vue')['default']
   }
 }

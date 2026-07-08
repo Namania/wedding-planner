@@ -9,3 +9,14 @@
     @apply transition-colors duration-200 bg-surface-50 dark:bg-surface-950 text-surface-900 dark:text-surface-50;
   }
 }
+
+/* Le calendrier de PrimeVue fixe ses cellules de jour à 2.5rem (soit 17.5rem
+   pour 7 colonnes), ce qui dépasse la largeur d'un petit écran de téléphone.
+   On réduit la taille des cellules sur les petits écrans pour que tout rentre. */
+@media (max-width: 400px) {
+  .p-datepicker-day,
+  .p-datepicker-weekday-cell {
+    --p-datepicker-date-width: 2rem;
+    --p-datepicker-date-height: 2rem;
+  }
+}
