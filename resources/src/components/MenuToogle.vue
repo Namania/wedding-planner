@@ -1,8 +1,13 @@
 <template>
     <Button icon="pi pi-bars" variant="text" severity="secondary" @click="visible = true" class="!w-10 !h-10" />
 
-    <Drawer v-model:visible="visible" header="Menu" position="left" class="!w-72">
-        <div class="flex flex-col h-full pb-4">
+    <Drawer
+        v-model:visible="visible"
+        header="Menu"
+        position="left"
+        class="!w-72"
+    >
+        <div class="flex flex-col h-full">
 
             <nav class="flex flex-col gap-1.5 mt-4 flex-1 min-h-0 overflow-y-auto">
                 <router-link to="/" @click="visible = false"
@@ -85,6 +90,8 @@
                         <span class="text-xs text-muted-color">{{ weddingStore.formattedDate }}</span>
                     </div>
                 </div>
+
+                <LogoutButton />
             </div>
 
         </div>
@@ -94,7 +101,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import Drawer from 'primevue/drawer'
-import SimulationSwitcher from '@/components/SimulationSwitcher.vue'
 import { useWeddingStore } from '@/stores/wedding'
 
 const visible = ref<boolean>(false)

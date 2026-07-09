@@ -14,10 +14,10 @@
                 </Message>
 
                 <div class="flex flex-col gap-1.5">
-                    <label for="username" class="text-xs font-bold uppercase tracking-wider text-muted-color">Nom
+                    <label for="email" class="text-xs font-bold uppercase tracking-wider text-muted-color">Nom
                         d'utilisateur</label>
-                    <InputText id="username" v-model.trim="username" placeholder="username" class="w-full !rounded-xl"
-                        :class="{ 'p-invalid': submitted && !username }" autofocus />
+                    <InputText id="email" type="email" v-model.trim="email" placeholder="email"
+                        class="w-full !rounded-xl" :class="{ 'p-invalid': submitted && !email }" autofocus />
                 </div>
 
                 <div class="flex flex-col gap-1.5">
@@ -28,7 +28,8 @@
                         :inputStyle="{ borderRadius: '0.75rem' }" />
                 </div>
 
-                <Button type="submit" label="Se connecter" class="w-full !rounded-xl !py-3 font-semibold mt-2" />
+                <Button type="submit" label="Se connecter" :loading="loading"
+                    class="w-full !rounded-xl !py-3 font-semibold mt-2" />
             </form>
         </div>
     </div>
@@ -37,29 +38,49 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Message from 'primevue/message'
+import axios from 'axios'
 
 const router = useRouter()
+const authStore = useAuthStore()
 
-const username = ref('')
+const email = ref('')
 const password = ref('')
 const submitted = ref(false)
+const loading = ref(false)
 const errorMessage = ref('')
 
-const handleLogin = () => {
+const handleLogin = async () => {
     submitted.value = true
     errorMessage.value = ''
 
-    if (!username.value || !password.value) return
+    if (!email.value || !password.value) return
 
-    const success = true;
+    loading.value = true
 
-    if (success) {
+    try {
+        await authStore.login({
+            email: email.value,
+            password: password.value
+        })
+
         router.push({ name: 'dashboard' })
-    } else {
-        errorMessage.value = 'Nom d\'utilisateur ou mot de passe incorrect.'
+    } catch (error: unknown) {
+            if (axios.isAxiosError(error)) {
+                if (error.response && error.response.status === 422) {
+                    const data = error.response.data as { message?: string }
+                    errorMessage.value = data.message || 'Identifiants incorrects.'
+                } else {
+                    errorMessage.value = "Identifiants incorrects ou problème serveur."
+                }
+            } else {
+                errorMessage.value = "Une erreur inattendue est survenue."
+            }
+        } finally {
+            loading.value = false
+        }
     }
-}
 </script>

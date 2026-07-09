@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CatererController;
 use App\Http\Controllers\DashboardController;
@@ -19,16 +20,23 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('metrics', [DashboardController::class, 'metrics']);
-Route::apiResource('guests', GuestController::class);
-Route::apiResource('venues', VenueController::class);
-Route::apiResource('caterers', CatererController::class);
-Route::apiResource('florists', FloristController::class);
-Route::apiResource('tasks', TaskController::class);
-Route::apiResource('seating-tables', SeatingTableController::class);
-Route::apiResource('timeline-events', TimelineEventController::class);
-Route::apiResource('simulations', SimulationController::class);
-Route::patch('simulations/{simulation}/activate', [SimulationController::class, 'activate']);
+Route::post('/login', [AuthController::class, 'login']);
 
-Route::get('budget', [BudgetController::class, 'show']);
-Route::put('budget', [BudgetController::class, 'update']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/user', [AuthController::class, 'me']);
+    Route::post('/logout', [AuthController::class, 'logout']);
+
+    Route::get('metrics', [DashboardController::class, 'metrics']);
+    Route::apiResource('guests', GuestController::class);
+    Route::apiResource('venues', VenueController::class);
+    Route::apiResource('caterers', CatererController::class);
+    Route::apiResource('florists', FloristController::class);
+    Route::apiResource('tasks', TaskController::class);
+    Route::apiResource('seating-tables', SeatingTableController::class);
+    Route::apiResource('timeline-events', TimelineEventController::class);
+    Route::apiResource('simulations', SimulationController::class);
+    Route::patch('simulations/{simulation}/activate', [SimulationController::class, 'activate']);
+
+    Route::get('budget', [BudgetController::class, 'show']);
+    Route::put('budget', [BudgetController::class, 'update']);
+});

@@ -900,7 +900,7 @@
                     "Simulations"
                 ],
                 "summary": "Supprimer une simulation",
-                "description": "Impossible de supprimer la dernière simulation restante. Si la simulation active est supprimée, une autre est automatiquement activée.",
+                "description": "Si la simulation active est supprimée, une autre est automatiquement activée (s'il en reste).",
                 "operationId": "88ef70b749f9cd34642fb5f80521ebc5",
                 "parameters": [
                     {
@@ -919,9 +919,6 @@
                     },
                     "404": {
                         "description": "Simulation introuvable"
-                    },
-                    "422": {
-                        "description": "Dernière simulation restante"
                     }
                 }
             }

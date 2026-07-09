@@ -17,6 +17,8 @@ declare module 'vue' {
     DrawerToogle: typeof import('./src/components/DrawerToogle.vue')['default']
     Layout: typeof import('./src/components/Layout.vue')['default']
     LayoutPanel: typeof import('./src/components/LayoutPanel.vue')['default']
+    Logout: typeof import('./src/components/Logout.vue')['default']
+    LogoutButton: typeof import('./src/components/LogoutButton.vue')['default']
     MenuToogle: typeof import('./src/components/MenuToogle.vue')['default']
     RadialMeter: typeof import('./src/components/RadialMeter.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
