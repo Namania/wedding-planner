@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Venue;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use OpenApi\Attributes as OA;
@@ -16,6 +17,7 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'maps_url', type: 'string', format: 'uri', nullable: true, example: 'https://maps.google.com/?q=Domaine+des+Roses'),
         new OA\Property(property: 'price', type: 'number', format: 'float', example: 3500),
         new OA\Property(property: 'note', type: 'string', nullable: true, example: 'Beau parc, mais salle un peu petite pour 80 invités.'),
+        new OA\Property(property: 'quote_status', type: 'string', enum: Venue::QUOTE_STATUSES, nullable: true, example: 'requested'),
         new OA\Property(property: 'created_at', type: 'string', format: 'date-time'),
     ]
 )]
@@ -29,6 +31,7 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'maps_url', type: 'string', format: 'uri', nullable: true),
         new OA\Property(property: 'price', type: 'number', format: 'float', minimum: 0),
         new OA\Property(property: 'note', type: 'string', nullable: true),
+        new OA\Property(property: 'quote_status', type: 'string', enum: Venue::QUOTE_STATUSES, nullable: true),
     ]
 )]
 class VenueResource extends JsonResource
@@ -47,6 +50,7 @@ class VenueResource extends JsonResource
             'maps_url' => $this->maps_url,
             'price' => (float) $this->price,
             'note' => $this->note,
+            'quote_status' => $this->quote_status,
             'created_at' => $this->created_at->toIso8601String(),
         ];
     }

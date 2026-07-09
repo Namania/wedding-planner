@@ -31,13 +31,27 @@ class DashboardController extends Controller
             'total' => Guest::count(),
         ];
 
-        $activeSimulation = Simulation::where('is_active', true)->with(['venue', 'caterer', 'florist'])->first();
+        $activeSimulation = Simulation::where('is_active', true)->with(['venue', 'caterer', 'florist', 'animations', 'outfits'])->first();
 
+        // Le traiteur est facturé au nombre d'invités qui viendront réellement :
+        // on exclut ceux ayant décliné (confirmed = false), mais on garde ceux
+        // en attente de réponse (confirmed = null), par prudence budgétaire.
+        $attendingGuestsCount = Guest::where('confirmed', true)->orWhereNull('confirmed')->count();
+
+        // Un devis refusé ne compte plus dans le budget utilisé (cf. BudgetView côté front).
         $simulationTotal = 0;
         if ($activeSimulation) {
-            $simulationTotal += (float) ($activeSimulation->venue?->price ?? 0);
-            $simulationTotal += (float) ($activeSimulation->florist?->price ?? 0);
-            $simulationTotal += (float) ($activeSimulation->caterer?->price_per_person ?? 0) * Guest::count();
+            if ($activeSimulation->venue && $activeSimulation->venue->quote_status !== 'refused') {
+                $simulationTotal += (float) $activeSimulation->venue->price;
+            }
+            if ($activeSimulation->florist && $activeSimulation->florist->quote_status !== 'refused') {
+                $simulationTotal += (float) $activeSimulation->florist->price;
+            }
+            if ($activeSimulation->caterer && $activeSimulation->caterer->quote_status !== 'refused') {
+                $simulationTotal += (float) $activeSimulation->caterer->price_per_person * $attendingGuestsCount;
+            }
+            $simulationTotal += (float) $activeSimulation->animations->where('quote_status', '!=', 'refused')->sum('price');
+            $simulationTotal += (float) $activeSimulation->outfits->where('quote_status', '!=', 'refused')->sum('price');
         }
 
         $metrics['budget'] = [

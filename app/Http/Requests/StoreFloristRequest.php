@@ -31,6 +31,7 @@ class StoreFloristRequest extends FormRequest
             'website' => 'nullable|url|max:255',
             'style' => ['nullable', 'string', Rule::in(Florist::STYLES)],
             'note' => 'nullable|string',
+            'quote_status' => ['nullable', 'string', Rule::in(Florist::QUOTE_STATUSES)],
         ];
     }
 }

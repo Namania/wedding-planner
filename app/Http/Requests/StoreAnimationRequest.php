@@ -2,12 +2,12 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Florist;
+use App\Models\Animation;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UpdateFloristRequest extends FormRequest
+class StoreAnimationRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -29,9 +29,9 @@ class UpdateFloristRequest extends FormRequest
             'price' => 'required|numeric|min:0',
             'phone' => 'nullable|string|max:30',
             'website' => 'nullable|url|max:255',
-            'style' => ['nullable', 'string', Rule::in(Florist::STYLES)],
+            'type' => ['nullable', 'string', Rule::in(Animation::TYPES)],
             'note' => 'nullable|string',
-            'quote_status' => ['nullable', 'string', Rule::in(Florist::QUOTE_STATUSES)],
+            'quote_status' => ['nullable', 'string', Rule::in(Animation::QUOTE_STATUSES)],
         ];
     }
 }

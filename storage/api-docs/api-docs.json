@@ -12,6 +12,169 @@
         }
     ],
     "paths": {
+        "/api/animations": {
+            "get": {
+                "tags": [
+                    "Animations"
+                ],
+                "summary": "Liste des animations",
+                "operationId": "d0d78ab14394878a2b55cf6a935a2b26",
+                "responses": {
+                    "200": {
+                        "description": "Liste des animations, par ordre alphabétique",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Animation"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Animations"
+                ],
+                "summary": "Créer une animation",
+                "operationId": "81856c854f18c2b81b63bf81390853e1",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AnimationInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Animation créée",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Animation"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    }
+                }
+            }
+        },
+        "/api/animations/{animation}": {
+            "get": {
+                "tags": [
+                    "Animations"
+                ],
+                "summary": "Détail d'une animation",
+                "operationId": "4a4465038571a0cdceead44472b665b3",
+                "parameters": [
+                    {
+                        "name": "animation",
+                        "in": "path",
+                        "description": "ID de l'animation",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Animation trouvée",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Animation"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Animation introuvable"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Animations"
+                ],
+                "summary": "Mettre à jour une animation",
+                "operationId": "5060712035c3d2f734dfc9e6e187fe67",
+                "parameters": [
+                    {
+                        "name": "animation",
+                        "in": "path",
+                        "description": "ID de l'animation",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AnimationInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Animation mise à jour",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Animation"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Animation introuvable"
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Animations"
+                ],
+                "summary": "Supprimer une animation",
+                "operationId": "4536db516ae5ca3cafd4a9d5210fa14d",
+                "parameters": [
+                    {
+                        "name": "animation",
+                        "in": "path",
+                        "description": "ID de l'animation",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Animation supprimée"
+                    },
+                    "404": {
+                        "description": "Animation introuvable"
+                    }
+                }
+            }
+        },
         "/api/budget": {
             "get": {
                 "tags": [
@@ -585,6 +748,256 @@
                     },
                     "404": {
                         "description": "Invité introuvable"
+                    }
+                }
+            }
+        },
+        "/api/outfits": {
+            "get": {
+                "tags": [
+                    "Outfits"
+                ],
+                "summary": "Liste des tenues",
+                "operationId": "44037bd603413c5ff158516c33ad1e81",
+                "responses": {
+                    "200": {
+                        "description": "Liste des tenues, par ordre alphabétique",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Outfit"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Outfits"
+                ],
+                "summary": "Créer une tenue",
+                "operationId": "a3335f1a43ecee7044694e03a21c2d6b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "price",
+                                    "spouse"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Robe champêtre - Maison Rose"
+                                    },
+                                    "price": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "minimum": 0
+                                    },
+                                    "spouse": {
+                                        "type": "string",
+                                        "enum": [
+                                            "spouse_1",
+                                            "spouse_2"
+                                        ]
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "website": {
+                                        "type": "string",
+                                        "format": "uri",
+                                        "nullable": true
+                                    },
+                                    "image": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "nullable": true
+                                    },
+                                    "note": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Tenue créée",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Outfit"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    }
+                }
+            }
+        },
+        "/api/outfits/{outfit}": {
+            "get": {
+                "tags": [
+                    "Outfits"
+                ],
+                "summary": "Détail d'une tenue",
+                "operationId": "b39a945fa0e22bef4d57adf04bcddc57",
+                "parameters": [
+                    {
+                        "name": "outfit",
+                        "in": "path",
+                        "description": "ID de la tenue",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tenue trouvée",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Outfit"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Tenue introuvable"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Outfits"
+                ],
+                "summary": "Mettre à jour une tenue",
+                "description": "Utilise le spoofing de méthode Laravel (`_method=PUT`) pour accepter un upload de fichier.",
+                "operationId": "def6ebc0e9aeb8df95629c66628d9aef",
+                "parameters": [
+                    {
+                        "name": "outfit",
+                        "in": "path",
+                        "description": "ID de la tenue",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "price",
+                                    "spouse"
+                                ],
+                                "properties": {
+                                    "_method": {
+                                        "type": "string",
+                                        "example": "PUT"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Robe champêtre - Maison Rose"
+                                    },
+                                    "price": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "minimum": 0
+                                    },
+                                    "spouse": {
+                                        "type": "string",
+                                        "enum": [
+                                            "spouse_1",
+                                            "spouse_2"
+                                        ]
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "website": {
+                                        "type": "string",
+                                        "format": "uri",
+                                        "nullable": true
+                                    },
+                                    "image": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "nullable": true
+                                    },
+                                    "note": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Tenue mise à jour",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Outfit"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Tenue introuvable"
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Outfits"
+                ],
+                "summary": "Supprimer une tenue",
+                "operationId": "9ac2ac6b6df690e91762213f04ff11f5",
+                "parameters": [
+                    {
+                        "name": "outfit",
+                        "in": "path",
+                        "description": "ID de la tenue",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tenue supprimée"
+                    },
+                    "404": {
+                        "description": "Tenue introuvable"
                     }
                 }
             }
@@ -1524,6 +1937,124 @@
     },
     "components": {
         "schemas": {
+            "Animation": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "DJ Max"
+                    },
+                    "price": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 900
+                    },
+                    "phone": {
+                        "type": "string",
+                        "example": "0612345678",
+                        "nullable": true
+                    },
+                    "website": {
+                        "type": "string",
+                        "format": "uri",
+                        "example": "https://dj-max.fr",
+                        "nullable": true
+                    },
+                    "type": {
+                        "type": "string",
+                        "example": "dj",
+                        "nullable": true,
+                        "enum": [
+                            "dj",
+                            "live_band",
+                            "photobooth",
+                            "fireworks",
+                            "magician",
+                            "show",
+                            "casino",
+                            "video_mapping"
+                        ]
+                    },
+                    "note": {
+                        "type": "string",
+                        "example": "Bon feeling, propose une playlist personnalisée.",
+                        "nullable": true
+                    },
+                    "quote_status": {
+                        "type": "string",
+                        "example": "requested",
+                        "nullable": true,
+                        "enum": [
+                            "requested",
+                            "accepted",
+                            "refused"
+                        ]
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "AnimationInput": {
+                "required": [
+                    "name",
+                    "price"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "example": "DJ Max",
+                        "maxLength": 255
+                    },
+                    "price": {
+                        "type": "number",
+                        "format": "float",
+                        "minimum": 0
+                    },
+                    "phone": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "website": {
+                        "type": "string",
+                        "format": "uri",
+                        "nullable": true
+                    },
+                    "type": {
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                            "dj",
+                            "live_band",
+                            "photobooth",
+                            "fireworks",
+                            "magician",
+                            "show",
+                            "casino",
+                            "video_mapping"
+                        ]
+                    },
+                    "note": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "quote_status": {
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                            "requested",
+                            "accepted",
+                            "refused"
+                        ]
+                    }
+                },
+                "type": "object"
+            },
             "Budget": {
                 "properties": {
                     "id": {
@@ -1597,6 +2128,16 @@
                         "example": "Bonne dégustation, menu végétarien disponible.",
                         "nullable": true
                     },
+                    "quote_status": {
+                        "type": "string",
+                        "example": "requested",
+                        "nullable": true,
+                        "enum": [
+                            "requested",
+                            "accepted",
+                            "refused"
+                        ]
+                    },
                     "created_at": {
                         "type": "string",
                         "format": "date-time"
@@ -1645,6 +2186,15 @@
                     "note": {
                         "type": "string",
                         "nullable": true
+                    },
+                    "quote_status": {
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                            "requested",
+                            "accepted",
+                            "refused"
+                        ]
                     }
                 },
                 "type": "object"
@@ -1694,6 +2244,16 @@
                         "example": "Très bon feeling, propose des fleurs de saison.",
                         "nullable": true
                     },
+                    "quote_status": {
+                        "type": "string",
+                        "example": "requested",
+                        "nullable": true,
+                        "enum": [
+                            "requested",
+                            "accepted",
+                            "refused"
+                        ]
+                    },
                     "created_at": {
                         "type": "string",
                         "format": "date-time"
@@ -1742,6 +2302,15 @@
                     "note": {
                         "type": "string",
                         "nullable": true
+                    },
+                    "quote_status": {
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                            "requested",
+                            "accepted",
+                            "refused"
+                        ]
                     }
                 },
                 "type": "object"
@@ -1809,6 +2378,68 @@
                     "seating_table_id": {
                         "type": "integer",
                         "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "Outfit": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Robe champêtre - Maison Rose"
+                    },
+                    "price": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 1200
+                    },
+                    "spouse": {
+                        "type": "string",
+                        "example": "spouse_1",
+                        "enum": [
+                            "spouse_1",
+                            "spouse_2"
+                        ]
+                    },
+                    "phone": {
+                        "type": "string",
+                        "example": "0612345678",
+                        "nullable": true
+                    },
+                    "website": {
+                        "type": "string",
+                        "format": "uri",
+                        "example": "https://maison-rose.fr",
+                        "nullable": true
+                    },
+                    "image_url": {
+                        "type": "string",
+                        "format": "uri",
+                        "example": "http://localhost:8000/storage/outfits/xxx.jpg",
+                        "nullable": true
+                    },
+                    "note": {
+                        "type": "string",
+                        "example": "Essayage prévu le mois prochain.",
+                        "nullable": true
+                    },
+                    "quote_status": {
+                        "type": "string",
+                        "example": "requested",
+                        "nullable": true,
+                        "enum": [
+                            "requested",
+                            "accepted",
+                            "refused"
+                        ]
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
                     }
                 },
                 "type": "object"
@@ -1896,6 +2527,26 @@
                         "example": 1,
                         "nullable": true
                     },
+                    "animation_ids": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "example": [
+                            1,
+                            2
+                        ]
+                    },
+                    "outfit_ids": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "example": [
+                            1,
+                            2
+                        ]
+                    },
                     "venue": {
                         "oneOf": [
                             {
@@ -1919,6 +2570,18 @@
                             }
                         ],
                         "nullable": true
+                    },
+                    "animations": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Animation"
+                        }
+                    },
+                    "outfits": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Outfit"
+                        }
                     }
                 },
                 "type": "object"
@@ -1941,6 +2604,20 @@
                     "florist_id": {
                         "type": "integer",
                         "nullable": true
+                    },
+                    "animation_ids": {
+                        "description": "Remplace la liste complète des animations retenues.",
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    },
+                    "outfit_ids": {
+                        "description": "Remplace la liste complète des tenues retenues.",
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
                     }
                 },
                 "type": "object"
@@ -2109,6 +2786,16 @@
                         "example": "Beau parc, mais salle un peu petite pour 80 invités.",
                         "nullable": true
                     },
+                    "quote_status": {
+                        "type": "string",
+                        "example": "requested",
+                        "nullable": true,
+                        "enum": [
+                            "requested",
+                            "accepted",
+                            "refused"
+                        ]
+                    },
                     "created_at": {
                         "type": "string",
                         "format": "date-time"
@@ -2145,6 +2832,15 @@
                     "note": {
                         "type": "string",
                         "nullable": true
+                    },
+                    "quote_status": {
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                            "requested",
+                            "accepted",
+                            "refused"
+                        ]
                     }
                 },
                 "type": "object"
@@ -2198,6 +2894,10 @@
     },
     "tags": [
         {
+            "name": "Animations",
+            "description": "Animations"
+        },
+        {
             "name": "Budget",
             "description": "Budget"
         },
@@ -2216,6 +2916,10 @@
         {
             "name": "Guests",
             "description": "Guests"
+        },
+        {
+            "name": "Outfits",
+            "description": "Outfits"
         },
         {
             "name": "SeatingTables",

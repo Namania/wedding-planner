@@ -20,7 +20,10 @@ class UpdateSimulationRequest extends FormRequest
      *
      * Ce endpoint sert à la fois au renommage et au changement de sélection
      * par catégorie (lieu/traiteur/fleuriste) : chaque champ est optionnel,
-     * seuls ceux envoyés par le client sont mis à jour.
+     * seuls ceux envoyés par le client sont mis à jour. `animation_ids` et
+     * `outfit_ids`, eux, remplacent la liste complète des animations/tenues
+     * retenues (plusieurs peuvent être sélectionnées en même temps,
+     * contrairement aux autres catégories).
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
@@ -31,6 +34,10 @@ class UpdateSimulationRequest extends FormRequest
             'venue_id' => 'sometimes|nullable|exists:venues,id',
             'caterer_id' => 'sometimes|nullable|exists:caterers,id',
             'florist_id' => 'sometimes|nullable|exists:florists,id',
+            'animation_ids' => 'sometimes|array',
+            'animation_ids.*' => 'integer|exists:animations,id',
+            'outfit_ids' => 'sometimes|array',
+            'outfit_ids.*' => 'integer|exists:outfits,id',
         ];
     }
 }

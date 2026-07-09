@@ -17,6 +17,13 @@ class Caterer extends Model
         'live_cooking',
     ];
 
+    // Suivi de la demande de devis auprès du prestataire.
+    public const QUOTE_STATUSES = [
+        'requested',
+        'accepted',
+        'refused',
+    ];
+
     protected $fillable = [
         'name',
         'price_per_person',
@@ -24,6 +31,7 @@ class Caterer extends Model
         'website',
         'service_type',
         'note',
+        'quote_status',
     ];
 
     protected $casts = [

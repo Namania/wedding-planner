@@ -18,6 +18,7 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'website', type: 'string', format: 'uri', nullable: true, example: 'https://saveurs-and-co.fr'),
         new OA\Property(property: 'service_type', type: 'string', enum: Caterer::SERVICE_TYPES, nullable: true, example: 'seated'),
         new OA\Property(property: 'note', type: 'string', nullable: true, example: 'Bonne dégustation, menu végétarien disponible.'),
+        new OA\Property(property: 'quote_status', type: 'string', enum: Caterer::QUOTE_STATUSES, nullable: true, example: 'requested'),
         new OA\Property(property: 'created_at', type: 'string', format: 'date-time'),
     ]
 )]
@@ -32,6 +33,7 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'website', type: 'string', format: 'uri', nullable: true),
         new OA\Property(property: 'service_type', type: 'string', enum: Caterer::SERVICE_TYPES, nullable: true),
         new OA\Property(property: 'note', type: 'string', nullable: true),
+        new OA\Property(property: 'quote_status', type: 'string', enum: Caterer::QUOTE_STATUSES, nullable: true),
     ]
 )]
 class CatererResource extends JsonResource
@@ -51,6 +53,7 @@ class CatererResource extends JsonResource
             'website' => $this->website,
             'service_type' => $this->service_type,
             'note' => $this->note,
+            'quote_status' => $this->quote_status,
             'created_at' => $this->created_at->toIso8601String(),
         ];
     }

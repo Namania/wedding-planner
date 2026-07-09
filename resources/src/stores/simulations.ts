@@ -1,23 +1,42 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import apiClient from '@/api/client'
+import type { QuoteStatus } from '@/components/QuoteStatusBadge.vue'
 
 export interface SimulationVenue {
     id: number
     name: string
     price: number
+    quote_status: QuoteStatus
 }
 
 export interface SimulationCaterer {
     id: number
     name: string
     price_per_person: number
+    quote_status: QuoteStatus
 }
 
 export interface SimulationFlorist {
     id: number
     name: string
     price: number
+    quote_status: QuoteStatus
+}
+
+export interface SimulationAnimation {
+    id: number
+    name: string
+    price: number
+    quote_status: QuoteStatus
+}
+
+export interface SimulationOutfit {
+    id: number
+    name: string
+    price: number
+    spouse: 'spouse_1' | 'spouse_2'
+    quote_status: QuoteStatus
 }
 
 export interface Simulation {
@@ -27,9 +46,15 @@ export interface Simulation {
     venue_id: number | null
     caterer_id: number | null
     florist_id: number | null
+    // Contrairement au lieu/traiteur/fleuriste (un seul choix), plusieurs
+    // animations/tenues peuvent être retenues en même temps pour une simulation.
+    animation_ids: number[]
+    outfit_ids: number[]
     venue: SimulationVenue | null
     caterer: SimulationCaterer | null
     florist: SimulationFlorist | null
+    animations: SimulationAnimation[]
+    outfits: SimulationOutfit[]
 }
 
 type SelectionCategory = 'venue_id' | 'caterer_id' | 'florist_id'
@@ -79,6 +104,30 @@ export const useSimulationsStore = defineStore('simulations', () => {
         await fetchSimulations()
     }
 
+    // Ajoute/retire une animation de la simulation active : plusieurs animations
+    // peuvent être retenues en même temps, contrairement aux autres catégories.
+    async function toggleAnimation(animationId: number) {
+        if (!active.value) return
+        const current = active.value.animation_ids
+        const animationIds = current.includes(animationId)
+            ? current.filter(id => id !== animationId)
+            : [...current, animationId]
+        await apiClient.put(`/simulations/${active.value.id}`, { animation_ids: animationIds })
+        await fetchSimulations()
+    }
+
+    // Ajoute/retire une tenue de la simulation active : plusieurs tenues peuvent
+    // être retenues en même temps (une par marié, voire plusieurs par marié).
+    async function toggleOutfit(outfitId: number) {
+        if (!active.value) return
+        const current = active.value.outfit_ids
+        const outfitIds = current.includes(outfitId)
+            ? current.filter(id => id !== outfitId)
+            : [...current, outfitId]
+        await apiClient.put(`/simulations/${active.value.id}`, { outfit_ids: outfitIds })
+        await fetchSimulations()
+    }
+
     return {
         simulations,
         active,
@@ -90,5 +139,7 @@ export const useSimulationsStore = defineStore('simulations', () => {
         deleteSimulation,
         activateSimulation,
         toggleSelection,
+        toggleAnimation,
+        toggleOutfit,
     }
 })

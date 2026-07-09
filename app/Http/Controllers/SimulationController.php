@@ -6,6 +6,7 @@ use App\Http\Requests\StoreSimulationRequest;
 use App\Http\Requests\UpdateSimulationRequest;
 use App\Http\Resources\SimulationResource;
 use App\Models\Simulation;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use OpenApi\Attributes as OA;
 
@@ -26,7 +27,7 @@ class SimulationController extends Controller
     public function index()
     {
         return SimulationResource::collection(
-            Simulation::with(['venue', 'caterer', 'florist'])->orderBy('created_at')->get()
+            Simulation::with(['venue', 'caterer', 'florist', 'animations', 'outfits'])->orderBy('created_at')->get()
         );
     }
 
@@ -98,7 +99,19 @@ class SimulationController extends Controller
     )]
     public function update(UpdateSimulationRequest $request, Simulation $simulation)
     {
-        $simulation->update($request->validated());
+        $validated = $request->validated();
+        $animationIds = Arr::pull($validated, 'animation_ids');
+        $outfitIds = Arr::pull($validated, 'outfit_ids');
+
+        $simulation->update($validated);
+
+        if ($animationIds !== null) {
+            $simulation->animations()->sync($animationIds);
+        }
+
+        if ($outfitIds !== null) {
+            $simulation->outfits()->sync($outfitIds);
+        }
 
         return new SimulationResource($simulation);
     }

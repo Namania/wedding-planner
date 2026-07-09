@@ -1,11 +1,13 @@
 import AppLayout from '@/layouts/AppLayout.vue'
 import { useAuthStore } from '@/stores/auth'
+import AnimationsView from '@/views/AnimationsView.vue'
 import BudgetView from '@/views/BudgetView.vue'
 import CaterersView from '@/views/CaterersView.vue'
 import DashboardView from '@/views/DashboardView.vue'
 import FloristsView from '@/views/FloristsView.vue'
 import GuestsView from '@/views/GuestsView.vue'
 import LoginView from '@/views/LoginView.vue'
+import OutfitsView from '@/views/OutfitsView.vue'
 import SeatingView from '@/views/SeatingView.vue'
 import SettingsView from '@/views/SettingsView.vue'
 import TasksView from '@/views/TasksView.vue'
@@ -59,6 +61,18 @@ const router = createRouter({
           path: 'florists',
           name: 'florists',
           component: FloristsView,
+          meta: { requiresAuth: true },
+        },
+        {
+          path: 'animations',
+          name: 'animations',
+          component: AnimationsView,
+          meta: { requiresAuth: true },
+        },
+        {
+          path: 'outfits',
+          name: 'outfits',
+          component: OutfitsView,
           meta: { requiresAuth: true },
         },
         {

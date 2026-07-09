@@ -130,6 +130,7 @@ import Skeleton from 'primevue/skeleton'
 import { useConfirm } from 'primevue/useconfirm'
 import apiClient from '@/api/client'
 import { useWeddingStore } from '@/stores/wedding'
+import { parseDateOnly, toDateInputValue } from '@/utils/date'
 
 type TaskStatus = 'todo' | 'in_progress' | 'done'
 type TaskCategory = 'administratif' | 'prestataires' | 'tenues' | 'deco' | 'invitations' | 'beaute' | 'logistique' | 'autre'
@@ -222,11 +223,11 @@ const getStatusIconClass = (status: TaskStatus): string => {
 
 const isOverdue = (task: Task): boolean => {
     if (!task.due_date || task.status === 'done') return false
-    return new Date(task.due_date) < new Date(new Date().toDateString())
+    return parseDateOnly(task.due_date) < new Date(new Date().toDateString())
 }
 
 const formatDate = (date: string): string =>
-    new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
+    parseDateOnly(date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
 
 const tasks = ref<Task[]>([])
 const isLoading = ref<boolean>(true)
@@ -261,7 +262,7 @@ const openNew = () => {
 const openEdit = (task: Task) => {
     isEditMode.value = true
     submitted.value = false
-    formTask.value = { ...task, due_date: task.due_date ? new Date(task.due_date) : null }
+    formTask.value = { ...task, due_date: task.due_date ? parseDateOnly(task.due_date) : null }
     taskDialog.value = true
 }
 
@@ -281,7 +282,7 @@ const confirmDelete = (event: Event) => {
 
 const toPayload = (task: TaskForm) => ({
     ...task,
-    due_date: task.due_date ? task.due_date.toISOString().slice(0, 10) : null,
+    due_date: task.due_date ? toDateInputValue(task.due_date) : null,
 })
 
 const handleSubmit = async () => {

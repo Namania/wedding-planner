@@ -51,6 +51,7 @@
 
 <script setup lang="ts">
 import { useWeddingStore } from '@/stores/wedding'
+import { toDateInputValue } from '@/utils/date'
 import DatePicker from 'primevue/datepicker'
 import InputText from 'primevue/inputtext'
 import Skeleton from 'primevue/skeleton'
@@ -99,7 +100,7 @@ const handleSubmit = async () => {
         await weddingStore.updateWedding({
             spouse_1_name: form.value.spouse_1_name,
             spouse_2_name: form.value.spouse_2_name,
-            date: form.value.date.toISOString().slice(0, 10),
+            date: toDateInputValue(form.value.date),
         })
         saved.value = true
     } finally {

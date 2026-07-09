@@ -54,6 +54,18 @@
                     <i class="pi pi-sun"></i> <span>Fleuristes</span>
                 </router-link>
 
+                <router-link to="/animations" @click="visible = false"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-color hover:bg-surface-100 dark:hover:bg-surface-800 font-medium transition-all"
+                    exact-active-class="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 !font-semibold">
+                    <i class="pi pi-video"></i> <span>Animations</span>
+                </router-link>
+
+                <router-link to="/outfits" @click="visible = false"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-color hover:bg-surface-100 dark:hover:bg-surface-800 font-medium transition-all"
+                    exact-active-class="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 !font-semibold">
+                    <i class="pi pi-tag"></i> <span>Tenues</span>
+                </router-link>
+
                 <span class="text-xs font-bold uppercase tracking-wider text-muted-color px-3 mb-1 mt-3 block">
                     Organisation
                 </span>

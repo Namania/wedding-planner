@@ -31,12 +31,16 @@
                 class="relative bg-surface-0 dark:bg-surface-900 p-4 rounded-2xl shadow-sm flex items-center justify-between gap-3 cursor-pointer active:scale-[0.99] transition-all duration-150"
                 :class="isSelected(venue) ? 'border-2 border-amber-400' : 'border border-surface-200 dark:border-surface-800'">
 
-                <button v-if="simulationsStore.active" type="button" @click.stop="toggleSelected(venue.id)"
-                    class="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-800 shadow-sm flex items-center justify-center z-10"
-                    title="Sélectionner pour la simulation active" aria-label="Sélectionner pour la simulation active">
-                    <i v-if="isSelected(venue)" class="pi pi-star-fill text-amber-400 text-sm"></i>
-                    <i v-else class="pi pi-star text-muted-color text-sm"></i>
-                </button>
+                <div class="absolute -top-2 -right-2 flex items-center gap-1.5 z-10">
+                    <QuoteStatusBadge :status="venue.quote_status" @update:status="updateQuoteStatus(venue, $event)" />
+
+                    <button v-if="simulationsStore.active" type="button" @click.stop="toggleSelected(venue.id)"
+                        class="w-7 h-7 rounded-full bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-800 shadow-sm flex items-center justify-center"
+                        title="Sélectionner pour la simulation active" aria-label="Sélectionner pour la simulation active">
+                        <i v-if="isSelected(venue)" class="pi pi-star-fill text-amber-400 text-sm"></i>
+                        <i v-else class="pi pi-star text-muted-color text-sm"></i>
+                    </button>
+                </div>
 
                 <div class="flex items-center gap-4 min-w-0">
                     <div class="w-11 h-11 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
@@ -155,6 +159,7 @@ import apiClient from '@/api/client'
 import { formatAmount } from '@/utils/currency'
 import { useFavicon } from '@/composables/useFavicon'
 import { useSimulationsStore } from '@/stores/simulations'
+import QuoteStatusBadge, { type QuoteStatus } from '@/components/QuoteStatusBadge.vue'
 
 interface Venue {
     id: number
@@ -163,6 +168,7 @@ interface Venue {
     maps_url: string | null
     price: number
     note: string | null
+    quote_status: QuoteStatus
 }
 
 // Forme du formulaire : le prix peut être vide (non encore saisi) tant que le
@@ -194,6 +200,11 @@ const isSelected = (venue: Venue): boolean => simulationsStore.active?.venue_id 
 
 const toggleSelected = async (venueId: number) => {
     await simulationsStore.toggleSelection('venue_id', venueId)
+}
+
+const updateQuoteStatus = async (venue: Venue, quote_status: QuoteStatus) => {
+    await apiClient.put(`/venues/${venue.id}`, { ...venue, quote_status })
+    await fetchVenues()
 }
 
 const fetchVenues = async () => {

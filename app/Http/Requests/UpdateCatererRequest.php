@@ -31,6 +31,7 @@ class UpdateCatererRequest extends FormRequest
             'website' => 'nullable|url|max:255',
             'service_type' => ['nullable', 'string', Rule::in(Caterer::SERVICE_TYPES)],
             'note' => 'nullable|string',
+            'quote_status' => ['nullable', 'string', Rule::in(Caterer::QUOTE_STATUSES)],
         ];
     }
 }

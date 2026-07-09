@@ -3,18 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class Florist extends Model
+class Outfit extends Model
 {
-    // Styles floraux proposés pour un mariage.
-    public const STYLES = [
-        'champetre',
-        'romantique',
-        'moderne',
-        'exotique',
-        'boheme',
-        'classique',
-        'luxueux',
+    // À quel marié appartient une tenue candidate.
+    public const SPOUSES = [
+        'spouse_1',
+        'spouse_2',
     ];
 
     // Suivi de la demande de devis auprès du prestataire.
@@ -27,9 +23,10 @@ class Florist extends Model
     protected $fillable = [
         'name',
         'price',
+        'spouse',
         'phone',
         'website',
-        'style',
+        'image_path',
         'note',
         'quote_status',
     ];
@@ -37,4 +34,9 @@ class Florist extends Model
     protected $casts = [
         'price' => 'decimal:2',
     ];
+
+    public function simulations(): BelongsToMany
+    {
+        return $this->belongsToMany(Simulation::class);
+    }
 }

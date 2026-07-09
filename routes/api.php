@@ -1,11 +1,13 @@
 <?php
 
+use App\Http\Controllers\AnimationController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CatererController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FloristController;
 use App\Http\Controllers\GuestController;
+use App\Http\Controllers\OutfitController;
 use App\Http\Controllers\SeatingTableController;
 use App\Http\Controllers\SimulationController;
 use App\Http\Controllers\TaskController;
@@ -32,6 +34,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('venues', VenueController::class);
     Route::apiResource('caterers', CatererController::class);
     Route::apiResource('florists', FloristController::class);
+    Route::apiResource('animations', AnimationController::class);
+    Route::apiResource('outfits', OutfitController::class);
     Route::apiResource('tasks', TaskController::class);
     Route::apiResource('seating-tables', SeatingTableController::class);
     Route::apiResource('timeline-events', TimelineEventController::class);

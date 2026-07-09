@@ -31,12 +31,16 @@
                 class="relative bg-surface-0 dark:bg-surface-900 p-4 rounded-2xl shadow-sm flex items-center justify-between gap-3 cursor-pointer active:scale-[0.99] transition-all duration-150"
                 :class="isSelected(caterer) ? 'border-2 border-amber-400' : 'border border-surface-200 dark:border-surface-800'">
 
-                <button v-if="simulationsStore.active" type="button" @click.stop="toggleSelected(caterer.id)"
-                    class="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-800 shadow-sm flex items-center justify-center z-10"
-                    title="Sélectionner pour la simulation active" aria-label="Sélectionner pour la simulation active">
-                    <i v-if="isSelected(caterer)" class="pi pi-star-fill text-amber-400 text-sm"></i>
-                    <i v-else class="pi pi-star text-muted-color text-sm"></i>
-                </button>
+                <div class="absolute -top-2 -right-2 flex items-center gap-1.5 z-10">
+                    <QuoteStatusBadge :status="caterer.quote_status" @update:status="updateQuoteStatus(caterer, $event)" />
+
+                    <button v-if="simulationsStore.active" type="button" @click.stop="toggleSelected(caterer.id)"
+                        class="w-7 h-7 rounded-full bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-800 shadow-sm flex items-center justify-center"
+                        title="Sélectionner pour la simulation active" aria-label="Sélectionner pour la simulation active">
+                        <i v-if="isSelected(caterer)" class="pi pi-star-fill text-amber-400 text-sm"></i>
+                        <i v-else class="pi pi-star text-muted-color text-sm"></i>
+                    </button>
+                </div>
 
                 <div class="flex items-center gap-4 min-w-0">
                     <div class="w-11 h-11 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
@@ -162,6 +166,7 @@ import apiClient from '@/api/client'
 import { formatAmount } from '@/utils/currency'
 import { useFavicon } from '@/composables/useFavicon'
 import { useSimulationsStore } from '@/stores/simulations'
+import QuoteStatusBadge, { type QuoteStatus } from '@/components/QuoteStatusBadge.vue'
 
 type ServiceType = 'cocktail' | 'cocktail_dinatoire' | 'seated' | 'buffet' | 'food_truck' | 'brunch' | 'live_cooking'
 
@@ -173,6 +178,7 @@ interface Caterer {
     website: string | null
     service_type: ServiceType | null
     note: string | null
+    quote_status: QuoteStatus
 }
 
 // Forme du formulaire : le prix peut être vide (non encore saisi) tant que le
@@ -242,6 +248,11 @@ const isSelected = (caterer: Caterer): boolean => simulationsStore.active?.cater
 
 const toggleSelected = async (catererId: number) => {
     await simulationsStore.toggleSelection('caterer_id', catererId)
+}
+
+const updateQuoteStatus = async (caterer: Caterer, quote_status: QuoteStatus) => {
+    await apiClient.put(`/caterers/${caterer.id}`, { ...caterer, quote_status })
+    await fetchCaterers()
 }
 
 const fetchCaterers = async () => {

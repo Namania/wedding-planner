@@ -4,17 +4,18 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Florist extends Model
+class Animation extends Model
 {
-    // Styles floraux proposés pour un mariage.
-    public const STYLES = [
-        'champetre',
-        'romantique',
-        'moderne',
-        'exotique',
-        'boheme',
-        'classique',
-        'luxueux',
+    // Types d'animations proposés pour un mariage.
+    public const TYPES = [
+        'dj',
+        'live_band',
+        'photobooth',
+        'fireworks',
+        'magician',
+        'show',
+        'casino',
+        'video_mapping',
     ];
 
     // Suivi de la demande de devis auprès du prestataire.
@@ -29,7 +30,7 @@ class Florist extends Model
         'price',
         'phone',
         'website',
-        'style',
+        'type',
         'note',
         'quote_status',
     ];
