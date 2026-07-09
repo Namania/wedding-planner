@@ -2,9 +2,9 @@
     <Button icon="pi pi-bars" variant="text" severity="secondary" @click="visible = true" class="!w-10 !h-10" />
 
     <Drawer v-model:visible="visible" header="Menu" position="left" class="!w-72">
-        <div class="flex flex-col justify-between h-full pb-4">
+        <div class="flex flex-col h-full pb-4">
 
-            <nav class="flex flex-col gap-1.5 mt-4">
+            <nav class="flex flex-col gap-1.5 mt-4 flex-1 min-h-0 overflow-y-auto">
                 <router-link to="/" @click="visible = false"
                     class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-color hover:bg-surface-100 dark:hover:bg-surface-800 font-medium transition-all"
                     exact-active-class="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 !font-semibold">
@@ -72,12 +72,18 @@
                 </router-link>
             </nav>
 
-            <div
-                class="px-3 border-t border-surface-200 dark:border-surface-800 pt-4 flex items-center justify-center gap-3">
-                <Avatar label="M" shape="circle" class="bg-indigo-600 text-white font-bold" />
-                <div class="flex flex-col">
-                    <span class="text-sm font-semibold">Margaux & Mael</span>
-                    <span class="text-xs text-muted-color">{{ weddingStore.formattedDate }}</span>
+            <div>
+                <div class="px-3 my-3 border-t border-surface-200 dark:border-surface-800"></div>
+
+                <SimulationSwitcher />
+
+                <div
+                    class="px-3 mt-3 border-t border-surface-200 dark:border-surface-800 pt-4 flex items-center justify-center gap-3">
+                    <Avatar label="M" shape="circle" class="bg-indigo-600 text-white font-bold" />
+                    <div class="flex flex-col">
+                        <span class="text-sm font-semibold">Margaux & Mael</span>
+                        <span class="text-xs text-muted-color">{{ weddingStore.formattedDate }}</span>
+                    </div>
                 </div>
             </div>
 
@@ -88,6 +94,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import Drawer from 'primevue/drawer'
+import SimulationSwitcher from '@/components/SimulationSwitcher.vue'
 import { useWeddingStore } from '@/stores/wedding'
 
 const visible = ref<boolean>(false)

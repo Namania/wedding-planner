@@ -27,8 +27,16 @@
                     ajouter un !</p>
             </div>
 
-            <div v-for="florist in florists" :key="florist.id" @click="openEdit(florist)"
-                class="bg-surface-0 dark:bg-surface-900 p-4 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm flex items-center justify-between gap-3 cursor-pointer active:scale-[0.99] transition-all duration-150">
+            <div v-for="florist in sortedFlorists" :key="florist.id" @click="openEdit(florist)"
+                class="relative bg-surface-0 dark:bg-surface-900 p-4 rounded-2xl shadow-sm flex items-center justify-between gap-3 cursor-pointer active:scale-[0.99] transition-all duration-150"
+                :class="isSelected(florist) ? 'border-2 border-amber-400' : 'border border-surface-200 dark:border-surface-800'">
+
+                <button v-if="simulationsStore.active" type="button" @click.stop="toggleSelected(florist.id)"
+                    class="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-800 shadow-sm flex items-center justify-center z-10"
+                    title="Sélectionner pour la simulation active" aria-label="Sélectionner pour la simulation active">
+                    <i v-if="isSelected(florist)" class="pi pi-star-fill text-amber-400 text-sm"></i>
+                    <i v-else class="pi pi-star text-muted-color text-sm"></i>
+                </button>
 
                 <div class="flex items-center gap-4 min-w-0">
                     <div class="w-11 h-11 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
@@ -140,7 +148,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
@@ -152,6 +160,7 @@ import { useConfirm } from 'primevue/useconfirm'
 import apiClient from '@/api/client'
 import { formatAmount } from '@/utils/currency'
 import { useFavicon } from '@/composables/useFavicon'
+import { useSimulationsStore } from '@/stores/simulations'
 
 type FloralStyle = 'champetre' | 'romantique' | 'moderne' | 'exotique' | 'boheme' | 'classique' | 'luxueux'
 
@@ -216,8 +225,23 @@ const getStyleClass = (style: FloralStyle) => {
     }
 }
 
+const simulationsStore = useSimulationsStore()
+
 const florists = ref<Florist[]>([])
 const isLoading = ref<boolean>(true)
+
+// Le fleuriste choisi dans la simulation active remonte en tête de liste.
+const sortedFlorists = computed(() => {
+    const selectedId = simulationsStore.active?.florist_id
+    if (!selectedId) return florists.value
+    return [...florists.value].sort((a, b) => (a.id === selectedId ? -1 : b.id === selectedId ? 1 : 0))
+})
+
+const isSelected = (florist: Florist): boolean => simulationsStore.active?.florist_id === florist.id
+
+const toggleSelected = async (floristId: number) => {
+    await simulationsStore.toggleSelection('florist_id', floristId)
+}
 
 const fetchFlorists = async () => {
     isLoading.value = true
@@ -291,5 +315,8 @@ const onDelete = async (id: number | string | undefined) => {
     await fetchFlorists()
 }
 
-onMounted(fetchFlorists)
+onMounted(() => {
+    fetchFlorists()
+    simulationsStore.ensureLoaded()
+})
 </script>

@@ -759,6 +759,208 @@
                 }
             }
         },
+        "/api/simulations": {
+            "get": {
+                "tags": [
+                    "Simulations"
+                ],
+                "summary": "Liste des simulations de budget",
+                "operationId": "f5fb2efdd38c71a6941a8fc2c39f1825",
+                "responses": {
+                    "200": {
+                        "description": "Liste des simulations",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Simulation"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Simulations"
+                ],
+                "summary": "Créer une simulation",
+                "operationId": "01a5479cec46741c78c884a1f498c4ea",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SimulationInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Simulation créée",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Simulation"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    }
+                }
+            }
+        },
+        "/api/simulations/{simulation}": {
+            "get": {
+                "tags": [
+                    "Simulations"
+                ],
+                "summary": "Détail d'une simulation",
+                "operationId": "d7c5a509e96fcdce5f6a631a013f50fe",
+                "parameters": [
+                    {
+                        "name": "simulation",
+                        "in": "path",
+                        "description": "ID de la simulation",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Simulation trouvée",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Simulation"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Simulation introuvable"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Simulations"
+                ],
+                "summary": "Mettre à jour une simulation (renommage et/ou sélection par catégorie)",
+                "operationId": "24c03d3d9900777cf63dce1d2a980731",
+                "parameters": [
+                    {
+                        "name": "simulation",
+                        "in": "path",
+                        "description": "ID de la simulation",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SimulationInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Simulation mise à jour",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Simulation"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Simulation introuvable"
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Simulations"
+                ],
+                "summary": "Supprimer une simulation",
+                "description": "Impossible de supprimer la dernière simulation restante. Si la simulation active est supprimée, une autre est automatiquement activée.",
+                "operationId": "88ef70b749f9cd34642fb5f80521ebc5",
+                "parameters": [
+                    {
+                        "name": "simulation",
+                        "in": "path",
+                        "description": "ID de la simulation",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Simulation supprimée"
+                    },
+                    "404": {
+                        "description": "Simulation introuvable"
+                    },
+                    "422": {
+                        "description": "Dernière simulation restante"
+                    }
+                }
+            }
+        },
+        "/api/simulations/{simulation}/activate": {
+            "patch": {
+                "tags": [
+                    "Simulations"
+                ],
+                "summary": "Basculer la simulation active",
+                "operationId": "554e826eddc18f169ee2352455744fbe",
+                "parameters": [
+                    {
+                        "name": "simulation",
+                        "in": "path",
+                        "description": "ID de la simulation",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Simulation activée",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Simulation"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Simulation introuvable"
+                    }
+                }
+            }
+        },
         "/api/tasks": {
             "get": {
                 "tags": [
@@ -1615,6 +1817,60 @@
                 },
                 "type": "object"
             },
+            "Simulation": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Défaut"
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "venue_id": {
+                        "type": "integer",
+                        "example": 1,
+                        "nullable": true
+                    },
+                    "caterer_id": {
+                        "type": "integer",
+                        "example": 1,
+                        "nullable": true
+                    },
+                    "florist_id": {
+                        "type": "integer",
+                        "example": 1,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "SimulationInput": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "example": "Option romantique",
+                        "maxLength": 255
+                    },
+                    "venue_id": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "caterer_id": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "florist_id": {
+                        "type": "integer",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
             "Task": {
                 "properties": {
                     "id": {
@@ -1845,6 +2101,10 @@
         {
             "name": "SeatingTables",
             "description": "SeatingTables"
+        },
+        {
+            "name": "Simulations",
+            "description": "Simulations"
         },
         {
             "name": "Tasks",

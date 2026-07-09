@@ -27,8 +27,16 @@
                     !</p>
             </div>
 
-            <div v-for="venue in venues" :key="venue.id" @click="openEdit(venue)"
-                class="bg-surface-0 dark:bg-surface-900 p-4 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm flex items-center justify-between gap-3 cursor-pointer active:scale-[0.99] transition-all duration-150">
+            <div v-for="venue in sortedVenues" :key="venue.id" @click="openEdit(venue)"
+                class="relative bg-surface-0 dark:bg-surface-900 p-4 rounded-2xl shadow-sm flex items-center justify-between gap-3 cursor-pointer active:scale-[0.99] transition-all duration-150"
+                :class="isSelected(venue) ? 'border-2 border-amber-400' : 'border border-surface-200 dark:border-surface-800'">
+
+                <button v-if="simulationsStore.active" type="button" @click.stop="toggleSelected(venue.id)"
+                    class="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-800 shadow-sm flex items-center justify-center z-10"
+                    title="Sélectionner pour la simulation active" aria-label="Sélectionner pour la simulation active">
+                    <i v-if="isSelected(venue)" class="pi pi-star-fill text-amber-400 text-sm"></i>
+                    <i v-else class="pi pi-star text-muted-color text-sm"></i>
+                </button>
 
                 <div class="flex items-center gap-4 min-w-0">
                     <div class="w-11 h-11 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
@@ -135,7 +143,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
@@ -146,6 +154,7 @@ import { useConfirm } from 'primevue/useconfirm'
 import apiClient from '@/api/client'
 import { formatAmount } from '@/utils/currency'
 import { useFavicon } from '@/composables/useFavicon'
+import { useSimulationsStore } from '@/stores/simulations'
 
 interface Venue {
     id: number
@@ -169,9 +178,23 @@ interface VenueForm {
 
 const confirm = useConfirm()
 const { getFaviconUrl, showFavicon, onFaviconError } = useFavicon()
+const simulationsStore = useSimulationsStore()
 
 const venues = ref<Venue[]>([])
 const isLoading = ref<boolean>(true)
+
+// Le lieu choisi dans la simulation active remonte en tête de liste.
+const sortedVenues = computed(() => {
+    const selectedId = simulationsStore.active?.venue_id
+    if (!selectedId) return venues.value
+    return [...venues.value].sort((a, b) => (a.id === selectedId ? -1 : b.id === selectedId ? 1 : 0))
+})
+
+const isSelected = (venue: Venue): boolean => simulationsStore.active?.venue_id === venue.id
+
+const toggleSelected = async (venueId: number) => {
+    await simulationsStore.toggleSelection('venue_id', venueId)
+}
 
 const fetchVenues = async () => {
     isLoading.value = true
@@ -238,5 +261,8 @@ const onDelete = async (id: number | string | undefined) => {
     await fetchVenues()
 }
 
-onMounted(fetchVenues)
+onMounted(() => {
+    fetchVenues()
+    simulationsStore.ensureLoaded()
+})
 </script>

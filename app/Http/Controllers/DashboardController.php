@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Budget;
 use App\Models\Guest;
+use App\Models\Simulation;
 use App\Models\Task;
 use App\Models\TimelineEvent;
 use OpenApi\Attributes as OA;
@@ -30,9 +31,17 @@ class DashboardController extends Controller
             'total' => Guest::count(),
         ];
 
+        $activeSimulation = Simulation::where('is_active', true)->with(['venue', 'caterer', 'florist'])->first();
+
+        $simulationTotal = 0;
+        if ($activeSimulation) {
+            $simulationTotal += (float) ($activeSimulation->venue?->price ?? 0);
+            $simulationTotal += (float) ($activeSimulation->florist?->price ?? 0);
+            $simulationTotal += (float) ($activeSimulation->caterer?->price_per_person ?? 0) * Guest::count();
+        }
+
         $metrics['budget'] = [
-            // TODO: à calculer depuis les vraies dépenses une fois le backend Expense en place.
-            'current' => 12450,
+            'current' => $simulationTotal,
             'max' => (float) Budget::firstOrCreate()->total,
         ];
 
