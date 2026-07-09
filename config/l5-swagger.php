@@ -5,7 +5,7 @@ return [
     'documentations' => [
         'default' => [
             'api' => [
-                'title' => 'Wending Planner API Documentation',
+                'title' => 'Wedding Planner API Documentation',
             ],
 
             'routes' => [

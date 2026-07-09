@@ -7,6 +7,7 @@ import FloristsView from '@/views/FloristsView.vue'
 import GuestsView from '@/views/GuestsView.vue'
 import LoginView from '@/views/LoginView.vue'
 import SeatingView from '@/views/SeatingView.vue'
+import SettingsView from '@/views/SettingsView.vue'
 import TasksView from '@/views/TasksView.vue'
 import TimelineView from '@/views/TimelineView.vue'
 import VenuesView from '@/views/VenuesView.vue'
@@ -76,6 +77,12 @@ const router = createRouter({
           path: 'timeline',
           name: 'timeline',
           component: TimelineView,
+          meta: { requiresAuth: true },
+        },
+        {
+          path: 'settings',
+          name: 'settings',
+          component: SettingsView,
           meta: { requiresAuth: true },
         },
       ]

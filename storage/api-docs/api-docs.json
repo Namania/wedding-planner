@@ -1,7 +1,7 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "title": "Wending Planner API",
+        "title": "Wedding Planner API",
         "description": "API de gestion pour la préparation du mariage.",
         "version": "1.0.0"
     },
@@ -1467,6 +1467,59 @@
                     }
                 }
             }
+        },
+        "/api/wedding": {
+            "get": {
+                "tags": [
+                    "Wedding"
+                ],
+                "summary": "Informations du mariage (mariés & date)",
+                "operationId": "3c252d8075a8af44ce7b63e5763a6488",
+                "responses": {
+                    "200": {
+                        "description": "Mariage courant",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Wedding"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Wedding"
+                ],
+                "summary": "Mettre à jour les informations du mariage",
+                "operationId": "73cb72512cc962fa5403a33d4474e00d",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/WeddingInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Mariage mis à jour",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Wedding"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -1842,6 +1895,30 @@
                         "type": "integer",
                         "example": 1,
                         "nullable": true
+                    },
+                    "venue": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/Venue"
+                            }
+                        ],
+                        "nullable": true
+                    },
+                    "caterer": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/Caterer"
+                            }
+                        ],
+                        "nullable": true
+                    },
+                    "florist": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/Florist"
+                            }
+                        ],
+                        "nullable": true
                     }
                 },
                 "type": "object"
@@ -2071,6 +2148,51 @@
                     }
                 },
                 "type": "object"
+            },
+            "Wedding": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "spouse_1_name": {
+                        "type": "string",
+                        "example": "Margaux"
+                    },
+                    "spouse_2_name": {
+                        "type": "string",
+                        "example": "Mael"
+                    },
+                    "date": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2028-01-01"
+                    }
+                },
+                "type": "object"
+            },
+            "WeddingInput": {
+                "required": [
+                    "spouse_1_name",
+                    "spouse_2_name",
+                    "date"
+                ],
+                "properties": {
+                    "spouse_1_name": {
+                        "type": "string",
+                        "example": "Margaux"
+                    },
+                    "spouse_2_name": {
+                        "type": "string",
+                        "example": "Mael"
+                    },
+                    "date": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2028-01-01"
+                    }
+                },
+                "type": "object"
             }
         }
     },
@@ -2114,6 +2236,10 @@
         {
             "name": "Venues",
             "description": "Venues"
+        },
+        {
+            "name": "Wedding",
+            "description": "Wedding"
         }
     ]
 }

@@ -16,6 +16,9 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'venue_id', type: 'integer', nullable: true, example: 1),
         new OA\Property(property: 'caterer_id', type: 'integer', nullable: true, example: 1),
         new OA\Property(property: 'florist_id', type: 'integer', nullable: true, example: 1),
+        new OA\Property(property: 'venue', ref: '#/components/schemas/Venue', nullable: true),
+        new OA\Property(property: 'caterer', ref: '#/components/schemas/Caterer', nullable: true),
+        new OA\Property(property: 'florist', ref: '#/components/schemas/Florist', nullable: true),
     ]
 )]
 #[OA\Schema(
@@ -44,6 +47,9 @@ class SimulationResource extends JsonResource
             'venue_id' => $this->venue_id,
             'caterer_id' => $this->caterer_id,
             'florist_id' => $this->florist_id,
+            'venue' => $this->venue ? new VenueResource($this->venue) : null,
+            'caterer' => $this->caterer ? new CatererResource($this->caterer) : null,
+            'florist' => $this->florist ? new FloristResource($this->florist) : null,
         ];
     }
 }

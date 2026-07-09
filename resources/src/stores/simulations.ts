@@ -2,6 +2,24 @@ import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import apiClient from '@/api/client'
 
+export interface SimulationVenue {
+    id: number
+    name: string
+    price: number
+}
+
+export interface SimulationCaterer {
+    id: number
+    name: string
+    price_per_person: number
+}
+
+export interface SimulationFlorist {
+    id: number
+    name: string
+    price: number
+}
+
 export interface Simulation {
     id: number
     name: string
@@ -9,6 +27,9 @@ export interface Simulation {
     venue_id: number | null
     caterer_id: number | null
     florist_id: number | null
+    venue: SimulationVenue | null
+    caterer: SimulationCaterer | null
+    florist: SimulationFlorist | null
 }
 
 type SelectionCategory = 'venue_id' | 'caterer_id' | 'florist_id'

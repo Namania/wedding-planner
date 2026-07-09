@@ -11,6 +11,7 @@ use App\Http\Controllers\SimulationController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TimelineEventController;
 use App\Http\Controllers\VenueController;
+use App\Http\Controllers\WeddingController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -39,4 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('budget', [BudgetController::class, 'show']);
     Route::put('budget', [BudgetController::class, 'update']);
+
+    Route::get('wedding', [WeddingController::class, 'show']);
+    Route::put('wedding', [WeddingController::class, 'update']);
 });

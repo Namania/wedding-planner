@@ -25,7 +25,9 @@ class SimulationController extends Controller
     )]
     public function index()
     {
-        return SimulationResource::collection(Simulation::orderBy('created_at')->get());
+        return SimulationResource::collection(
+            Simulation::with(['venue', 'caterer', 'florist'])->orderBy('created_at')->get()
+        );
     }
 
     #[OA\Post(

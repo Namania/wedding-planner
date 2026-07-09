@@ -75,6 +75,12 @@
                     exact-active-class="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 !font-semibold">
                     <i class="pi pi-calendar"></i> <span>Planning</span>
                 </router-link>
+
+                <router-link to="/settings" @click="visible = false"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-color hover:bg-surface-100 dark:hover:bg-surface-800 font-medium transition-all"
+                    exact-active-class="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 !font-semibold">
+                    <i class="pi pi-cog"></i> <span>Réglages</span>
+                </router-link>
             </nav>
 
             <div>
@@ -86,7 +92,7 @@
                     class="px-3 mt-3 border-t border-surface-200 dark:border-surface-800 pt-4 flex items-center justify-center gap-3">
                     <Avatar label="M" shape="circle" class="bg-indigo-600 text-white font-bold" />
                     <div class="flex flex-col">
-                        <span class="text-sm font-semibold">Margaux & Mael</span>
+                        <span class="text-sm font-semibold">{{ weddingStore.spouse1Name }} & {{ weddingStore.spouse2Name }}</span>
                         <span class="text-xs text-muted-color">{{ weddingStore.formattedDate }}</span>
                     </div>
                 </div>
