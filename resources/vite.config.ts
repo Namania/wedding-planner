@@ -7,11 +7,12 @@ import tailwindcss from '@tailwindcss/vite'
 import Components from 'unplugin-vue-components/vite'
 import { PrimeVueResolver } from 'unplugin-vue-components/resolvers'
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, command }) => {
 
   const env = loadEnv(mode, process.cwd(), '');
 
   return {
+    base: command === 'build' ? '/build/' : '/',
     plugins: [
       vue(),
       vueDevTools(),
@@ -26,6 +27,11 @@ export default defineConfig(({ mode }) => {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
       },
+    },
+    build: {
+      // Emit into the Laravel public dir so the backend can serve the
+      // built SPA directly, no separate frontend container in production.
+      outDir: '../public/build',
     },
     server: {
       host: '0.0.0.0',
