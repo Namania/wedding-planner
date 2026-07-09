@@ -4,6 +4,7 @@ import CaterersView from '@/views/CaterersView.vue'
 import DashboardView from '@/views/DashboardView.vue'
 import FloristsView from '@/views/FloristsView.vue'
 import GuestsView from '@/views/GuestsView.vue'
+import LoginView from '@/views/LoginView.vue'
 import SeatingView from '@/views/SeatingView.vue'
 import TasksView from '@/views/TasksView.vue'
 import TimelineView from '@/views/TimelineView.vue'
@@ -13,6 +14,11 @@ import { createRouter, createWebHistory } from 'vue-router'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    {
+      path: '/login',
+      name: 'login',
+      component: LoginView,
+    },
     {
       path: '/',
       component: AppLayout,
