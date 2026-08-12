@@ -1,5 +1,5 @@
-# Production image: builds the Vue SPA and serves it from the same
-# container as the Laravel API, so only one container ships to prod.
+# Production image: builds the Vue SPA and serves it, together with the
+# Laravel API, from a single FrankenPHP container.
 # Build from the repo root: docker build -f .docker/Dockerfile .
 
 FROM node:20-alpine AS frontend
@@ -12,22 +12,9 @@ RUN npm ci
 COPY resources/ .
 RUN npm run build
 
-FROM php:8.5-fpm AS backend
+FROM dunglas/frankenphp:1-php8.5-alpine AS backend
 
-RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    unzip \
-    zip \
-    libzip-dev \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN docker-php-ext-install \
-    pdo \
+RUN install-php-extensions \
     pdo_pgsql \
     pgsql \
     mbstring \
@@ -35,17 +22,30 @@ RUN docker-php-ext-install \
     exif \
     pcntl
 
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+COPY .docker/php/opcache-prod.ini $PHP_INI_DIR/conf.d/opcache-prod.ini
 
-WORKDIR /var/www
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+WORKDIR /app
+
+# Installed before the rest of the app is copied so this layer is only
+# invalidated when composer.json/composer.lock actually change.
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-scripts --no-interaction
 
 COPY . .
-RUN composer install --no-dev --optimize-autoloader
-
 COPY --from=frontend /public/build ./public/build
 
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+RUN composer install --no-dev --optimize-autoloader --no-interaction \
+    && chown -R www-data:www-data /app /data /config
 
+COPY .docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+USER www-data
+
+ENV SERVER_NAME=":8080"
 EXPOSE 8080
 
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8080"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["frankenphp", "run", "--config", "/etc/frankenphp/Caddyfile", "--adapter", "caddyfile"]
