@@ -28,5 +28,9 @@ export const useAuthStore = defineStore('auth', () => {
         user.value = null;
     }
 
-    return { user, isAuthenticated, login, logout, checkAuth };
+    function clearSession() {
+        user.value = null;
+    }
+
+    return { user, isAuthenticated, login, logout, checkAuth, clearSession };
 });
