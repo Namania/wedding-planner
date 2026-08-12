@@ -1,14 +1,14 @@
 up:
 	docker compose up -d
 
+down:
+	docker compose down
+
+logs:
+	docker compose logs -f
+
 exec:
 	docker exec -it wedding-planner-php bash
 
-prod-build:
-	docker compose -f compose.prod.yml build
-
-prod-up:
-	docker compose -f compose.prod.yml up -d
-
-prod-exec:
-	docker exec -it wedding-planner-app bash
+fresh:
+	docker exec -it wedding-planner-php php artisan migrate:fresh --seed
