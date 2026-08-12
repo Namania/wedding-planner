@@ -26,6 +26,8 @@ class StoreGuestRequest extends FormRequest
             'name' => 'required|string|max:255',
             'role' => 'nullable|string|in:witness,groomsman,bridesmaid',
             'confirmed' => 'nullable|boolean',
+            'attendance' => 'nullable|array',
+            'attendance.*' => 'string|in:ceremony,cocktail,dinner,brunch',
             'seating_table_id' => 'nullable|exists:seating_tables,id',
         ];
     }

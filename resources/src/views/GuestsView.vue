@@ -14,6 +14,19 @@
                 aria-label="Ajouter un invité" />
         </div>
 
+        <div class="flex flex-col gap-2 px-1">
+            <InputText v-model="searchQuery" placeholder="Rechercher un invité..."
+                class="w-full !rounded-xl" />
+            <div class="flex flex-wrap gap-2">
+                <Select v-model="presenceFilter" :options="presenceFilterOptions" optionLabel="label"
+                    optionValue="value" placeholder="Statut" showClear class="!rounded-xl flex-1 min-w-[7rem]" />
+                <Select v-model="roleFilter" :options="roleOptions" optionLabel="label"
+                    optionValue="value" placeholder="Rôle" showClear class="!rounded-xl flex-1 min-w-[7rem]" />
+                <Select v-model="attendanceFilter" :options="attendanceOptions" optionLabel="label"
+                    optionValue="value" placeholder="Moment" showClear class="!rounded-xl flex-1 min-w-[7rem]" />
+            </div>
+        </div>
+
         <div v-if="isLoading" class="space-y-3">
             <div v-for="n in 4" :key="n"
                 class="bg-surface-0 dark:bg-surface-900 p-4 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm flex items-center gap-4">
@@ -33,7 +46,13 @@
                     !</p>
             </div>
 
-            <div v-for="guest in guests" :key="guest.id" @click="openEdit(guest)"
+            <div v-else-if="filteredGuests.length === 0"
+                class="text-center py-12 bg-surface-0 dark:bg-surface-900 rounded-2xl border border-surface-200 dark:border-surface-800 p-6">
+                <i class="pi pi-filter-slash text-4xl text-muted-color mb-3 block"></i>
+                <p class="text-sm text-muted-color font-medium">Aucun invité ne correspond aux filtres.</p>
+            </div>
+
+            <div v-for="guest in filteredGuests" :key="guest.id" @click="openEdit(guest)"
                 class="bg-surface-0 dark:bg-surface-900 p-4 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm flex items-center justify-between gap-3 cursor-pointer active:scale-[0.99] transition-all duration-150">
 
                 <div class="flex items-center gap-4 min-w-0">
@@ -50,6 +69,12 @@
                             class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full whitespace-nowrap w-fit mt-1">
                             {{ getRoleLabel(guest.role) }}
                         </span>
+
+                        <div v-if="getAttendanceIcons(guest.attendance).length" class="flex items-center gap-2 mt-1">
+                            <span v-for="option in getAttendanceIcons(guest.attendance)" :key="option.value"
+                                v-html="option.icon" :title="option.label"
+                                class="text-teal-600 dark:text-teal-400 text-sm leading-none"></span>
+                        </div>
                     </div>
                 </div>
 
@@ -81,6 +106,14 @@
                         l'invité</label>
                     <Select id="role" v-model="formGuest.role" :options="roleOptions" optionLabel="label"
                         optionValue="value" placeholder="Sélectionnez un rôle" class="w-full !rounded-xl" showClear />
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <label for="attendance" class="text-xs font-bold uppercase tracking-wider text-muted-color">Moments
+                        auxquels l'invité assiste</label>
+                    <MultiSelect id="attendance" v-model="formGuest.attendance" :options="attendanceOptions"
+                        optionLabel="label" optionValue="value" placeholder="Sélectionnez les moments"
+                        display="chip" class="w-full !rounded-xl" />
                 </div>
 
                 <div class="flex flex-col gap-1.5">
@@ -118,6 +151,7 @@ import { ref, computed, onMounted } from 'vue'
 import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
+import MultiSelect from 'primevue/multiselect'
 import SelectButton from 'primevue/selectbutton'
 import ConfirmPopup from 'primevue/confirmpopup'
 import Skeleton from 'primevue/skeleton'
@@ -129,6 +163,7 @@ interface Guest {
     name: string
     role: string | null
     confirmed: boolean | null
+    attendance: string[] | null
 }
 
 const confirm = useConfirm()
@@ -151,10 +186,50 @@ const roleOptions = [
     { label: "Demoiselle d'honneur", value: 'bridesmaid' }
 ]
 
+// PrimeIcons n'a pas de bague / verre / couverts : icônes SVG maison, même
+// gabarit (trait 2px, currentColor) pour rester visuellement cohérentes.
+const attendanceIcons: Record<string, string> = {
+    ceremony: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="15" r="6" /><path d="M12 9 L9.5 4 L14.5 4 Z" /></svg>',
+    cocktail: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3 C7 8 8 11 12 11 C16 11 17 8 17 3 Z" /><line x1="12" y1="11" x2="12" y2="19" /><line x1="8" y1="21" x2="16" y2="21" /></svg>',
+    dinner: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2 L5 7 Q5 9 7 9 Q9 9 9 7 L9 2" /><line x1="7" y1="2" x2="7" y2="7" /><line x1="7" y1="9" x2="7" y2="22" /><path d="M15 2 C13.5 2 13.5 7 15 9 L15 22" /></svg>',
+    brunch: '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4" /><line x1="12" y1="2" x2="12" y2="5" /><line x1="12" y1="19" x2="12" y2="22" /><line x1="2" y1="12" x2="5" y2="12" /><line x1="19" y1="12" x2="22" y2="12" /><line x1="4.5" y1="4.5" x2="6.5" y2="6.5" /><line x1="17.5" y1="17.5" x2="19.5" y2="19.5" /><line x1="4.5" y1="19.5" x2="6.5" y2="17.5" /><line x1="17.5" y1="6.5" x2="19.5" y2="4.5" /></svg>'
+}
+
+const attendanceOptions = [
+    { label: 'Cérémonie', value: 'ceremony', icon: attendanceIcons.ceremony },
+    { label: "Vin d'honneur", value: 'cocktail', icon: attendanceIcons.cocktail },
+    { label: 'Repas', value: 'dinner', icon: attendanceIcons.dinner },
+    { label: 'Lendemain', value: 'brunch', icon: attendanceIcons.brunch }
+]
+
+const presenceFilterOptions = [
+    { label: 'Confirmé', value: 'confirmed' },
+    { label: 'En attente', value: 'pending' },
+    { label: 'Décliné', value: 'declined' }
+]
+
+const searchQuery = ref<string>('')
+const presenceFilter = ref<string | null>(null)
+const roleFilter = ref<string | null>(null)
+const attendanceFilter = ref<string | null>(null)
+
 const guests = ref<Guest[]>([])
 const isLoading = ref<boolean>(true)
 
 const totalGuests = computed(() => guests.value.length)
+
+const filteredGuests = computed(() => {
+    const query = searchQuery.value.trim().toLowerCase()
+    return guests.value.filter(guest => {
+        if (query && !guest.name.toLowerCase().includes(query)) return false
+        if (roleFilter.value && guest.role !== roleFilter.value) return false
+        if (presenceFilter.value === 'confirmed' && guest.confirmed !== true) return false
+        if (presenceFilter.value === 'pending' && guest.confirmed !== null) return false
+        if (presenceFilter.value === 'declined' && guest.confirmed !== false) return false
+        if (attendanceFilter.value && !(guest.attendance ?? []).includes(attendanceFilter.value)) return false
+        return true
+    })
+})
 
 const fetchGuests = async () => {
     isLoading.value = true
@@ -170,19 +245,19 @@ const guestDialog = ref<boolean>(false)
 const isEditMode = ref<boolean>(false)
 const submitted = ref<boolean>(false)
 
-const formGuest = ref<Guest>({ name: '', role: null, confirmed: null })
+const formGuest = ref<Guest>({ name: '', role: null, confirmed: null, attendance: [] })
 
 const openNew = () => {
     isEditMode.value = false
     submitted.value = false
-    formGuest.value = { name: '', role: null, confirmed: null }
+    formGuest.value = { name: '', role: null, confirmed: null, attendance: ['ceremony', 'cocktail'] }
     guestDialog.value = true
 }
 
 const openEdit = (guest: Guest) => {
     isEditMode.value = true
     submitted.value = false
-    formGuest.value = { ...guest }
+    formGuest.value = { ...guest, attendance: guest.attendance ?? [] }
     guestDialog.value = true
 }
 
@@ -228,6 +303,11 @@ const getInitials = (name: string): string => {
 const getRoleLabel = (role: string): string => {
     const matched = roleOptions.find(option => option.value === role)
     return matched ? matched.label : role
+}
+
+const getAttendanceIcons = (attendance: string[] | null) => {
+    if (!attendance || attendance.length === 0) return []
+    return attendanceOptions.filter(option => attendance.includes(option.value))
 }
 
 const getRoleClass = (role: string) => {

@@ -138,6 +138,7 @@ interface Guest {
     name: string
     role: string | null
     confirmed: boolean | null
+    attendance: string[] | null
     seating_table_id: number | null
 }
 
@@ -167,7 +168,11 @@ const allGuests = ref<Guest[]>([])
 const isLoading = ref<boolean>(true)
 
 const totalTables = computed(() => tables.value.length)
-const unassignedGuests = computed(() => allGuests.value.filter(g => g.seating_table_id === null))
+// Le plan de table ne concerne que le repas : on exclut les invités qui ne
+// viennent pas du tout, ou qui ne restent pas pour le repas.
+const attendsDinner = (guest: Guest) => guest.confirmed !== false && (guest.attendance ?? []).includes('dinner')
+
+const unassignedGuests = computed(() => allGuests.value.filter(g => g.seating_table_id === null && attendsDinner(g)))
 
 const fetchAll = async () => {
     isLoading.value = true

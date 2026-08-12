@@ -7,15 +7,30 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Guest extends Model
 {
+    // Moments du mariage auxquels un invité peut assister.
+    public const ATTENDANCE_MOMENTS = [
+        'ceremony',
+        'cocktail',
+        'dinner',
+        'brunch',
+    ];
+
     protected $fillable = [
         'name',
         'role',
         'confirmed',
+        'attendance',
         'seating_table_id',
     ];
 
     protected $casts = [
         'confirmed' => 'boolean',
+        'attendance' => 'array',
+    ];
+
+    // Un invité assiste par défaut à la cérémonie et au vin d'honneur.
+    protected $attributes = [
+        'attendance' => '["ceremony","cocktail"]',
     ];
 
     public function seatingTable(): BelongsTo

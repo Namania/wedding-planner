@@ -12,22 +12,16 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     Avatar: typeof import('primevue/avatar')['default']
-    Badge: typeof import('primevue/badge')['default']
     BudgetSegmentedMeter: typeof import('./src/components/BudgetSegmentedMeter.vue')['default']
     Button: typeof import('primevue/button')['default']
-    DrawerToogle: typeof import('./src/components/DrawerToogle.vue')['default']
-    Layout: typeof import('./src/components/Layout.vue')['default']
-    LayoutPanel: typeof import('./src/components/LayoutPanel.vue')['default']
-    Logout: typeof import('./src/components/Logout.vue')['default']
     LogoutButton: typeof import('./src/components/LogoutButton.vue')['default']
     MenuToogle: typeof import('./src/components/MenuToogle.vue')['default']
+    MultiSelect: typeof import('primevue/multiselect')['default']
     QuoteStatusBadge: typeof import('./src/components/QuoteStatusBadge.vue')['default']
     RadialMeter: typeof import('./src/components/RadialMeter.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    Sidebar: typeof import('primevue/sidebar')['default']
     SimulationSwitcher: typeof import('./src/components/SimulationSwitcher.vue')['default']
-    Skeleton: typeof import('primevue/skeleton')['default']
     ThemeToggle: typeof import('./src/components/ThemeToggle.vue')['default']
   }
 }
