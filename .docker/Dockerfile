@@ -24,7 +24,7 @@ RUN install-php-extensions \
 
 COPY .docker/php/opcache-prod.ini $PHP_INI_DIR/conf.d/opcache-prod.ini
 
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 WORKDIR /app
 
