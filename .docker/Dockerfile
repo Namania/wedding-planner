@@ -4,6 +4,24 @@
 
 FROM node:20-alpine AS frontend
 
+# Vite inline ces variables dans le bundle JS au moment du build : elles
+# doivent arriver comme build args (Dokploy: "Build Time Arguments"), pas
+# comme simples variables d'environnement du conteneur au runtime.
+ARG VITE_APP_NAME
+ARG VITE_API_BASE_URL
+ARG VITE_ALLOWED_HOST
+ARG VITE_REVERB_APP_KEY
+ARG VITE_REVERB_HOST
+ARG VITE_REVERB_PORT
+ARG VITE_REVERB_SCHEME
+ENV VITE_APP_NAME=$VITE_APP_NAME \
+    VITE_API_BASE_URL=$VITE_API_BASE_URL \
+    VITE_ALLOWED_HOST=$VITE_ALLOWED_HOST \
+    VITE_REVERB_APP_KEY=$VITE_REVERB_APP_KEY \
+    VITE_REVERB_HOST=$VITE_REVERB_HOST \
+    VITE_REVERB_PORT=$VITE_REVERB_PORT \
+    VITE_REVERB_SCHEME=$VITE_REVERB_SCHEME
+
 WORKDIR /app
 
 COPY resources/package*.json ./
@@ -23,6 +41,10 @@ RUN install-php-extensions \
     pcntl
 
 COPY .docker/php/opcache-prod.ini $PHP_INI_DIR/conf.d/opcache-prod.ini
+
+# Route /app/* vers Reverb (même conteneur, port interne) en plus du Caddyfile
+# par défaut de FrankenPHP — un seul domaine/port exposé pour tout.
+COPY .docker/Caddyfile /etc/frankenphp/Caddyfile
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 

@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BroadcastsChanges;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Guest extends Model
 {
+    use BroadcastsChanges, HasFactory;
+
     // Moments du mariage auxquels un invité peut assister.
     public const ATTENDANCE_MOMENTS = [
         'ceremony',

@@ -132,6 +132,7 @@ import ConfirmPopup from 'primevue/confirmpopup'
 import Skeleton from 'primevue/skeleton'
 import { useConfirm } from 'primevue/useconfirm'
 import apiClient from '@/api/client'
+import { useRealtimeResource } from '@/composables/useRealtimeResource'
 
 interface Guest {
     id: number
@@ -188,19 +189,41 @@ const fetchAll = async () => {
     }
 }
 
+// Répercute l'invité déplacé sur les listes locales (sa fiche + la table
+// d'origine et de destination), plutôt que de tout recharger, pour ne pas
+// faire remonter la page en haut.
+const applyGuestAssignment = (guest: Guest) => {
+    const index = allGuests.value.findIndex(g => g.id === guest.id)
+    if (index !== -1) {
+        allGuests.value[index] = guest
+    } else {
+        // Invité créé depuis une autre page (ou par le conjoint en temps réel) :
+        // pas encore dans cette liste.
+        allGuests.value.push(guest)
+    }
+
+    tables.value.forEach(table => {
+        table.guests = table.guests.filter(g => g.id !== guest.id)
+    })
+    if (guest.seating_table_id !== null) {
+        const table = tables.value.find(t => t.id === guest.seating_table_id)
+        if (table) table.guests.push({ id: guest.id, name: guest.name, confirmed: guest.confirmed })
+    }
+}
+
 const assignGuest = async (tableId: number, guestId: number | null) => {
     if (guestId === null) return
     const guest = allGuests.value.find(g => g.id === guestId)
     if (!guest) return
-    await apiClient.put(`/guests/${guestId}`, { ...guest, seating_table_id: tableId })
-    await fetchAll()
+    const { data } = await apiClient.put(`/guests/${guestId}`, { ...guest, seating_table_id: tableId })
+    applyGuestAssignment(data)
 }
 
 const unassignGuest = async (guestId: number) => {
     const guest = allGuests.value.find(g => g.id === guestId)
     if (!guest) return
-    await apiClient.put(`/guests/${guestId}`, { ...guest, seating_table_id: null })
-    await fetchAll()
+    const { data } = await apiClient.put(`/guests/${guestId}`, { ...guest, seating_table_id: null })
+    applyGuestAssignment(data)
 }
 
 const tableDialog = ref<boolean>(false)
@@ -239,24 +262,64 @@ const confirmDeleteTable = (event: Event) => {
     })
 }
 
+// Met à jour la liste en local avec la ressource renvoyée par l'API plutôt
+// que de tout recharger, pour ne pas faire remonter la page en haut.
+const upsertTable = (table: SeatingTable) => {
+    const index = tables.value.findIndex(t => t.id === table.id)
+    if (index !== -1) {
+        tables.value[index] = table
+        return
+    }
+    tables.value.push(table)
+    tables.value.sort((a, b) => a.name.localeCompare(b.name))
+}
+
 const handleSubmitTable = async () => {
     submitted.value = true
     if (!formTable.value.name.trim() || !formTable.value.capacity) return
 
     if (isEditMode.value) {
-        await apiClient.put(`/seating-tables/${formTable.value.id}`, formTable.value)
+        const { data } = await apiClient.put(`/seating-tables/${formTable.value.id}`, formTable.value)
+        upsertTable(data)
     } else {
-        await apiClient.post('/seating-tables', formTable.value)
+        const { data } = await apiClient.post('/seating-tables', formTable.value)
+        upsertTable(data)
     }
     tableDialog.value = false
-    await fetchAll()
 }
 
 const onDeleteTable = async (id: number | string | undefined) => {
     if (id === undefined) return
+    const table = tables.value.find(t => t.id === id)
     await apiClient.delete(`/seating-tables/${id}`)
-    await fetchAll()
+    tables.value = tables.value.filter(t => t.id !== id)
+
+    // La suppression détache les invités de la table côté serveur (nullOnDelete) :
+    // on répercute ça localement pour qu'ils redeviennent "non assignés".
+    if (table) {
+        const freedIds = new Set(table.guests.map(g => g.id))
+        allGuests.value = allGuests.value.map(g => (freedIds.has(g.id) ? { ...g, seating_table_id: null } : g))
+    }
 }
 
 onMounted(fetchAll)
+
+useRealtimeResource<Guest>('guest', {
+    onCreatedOrUpdated: applyGuestAssignment,
+    onDeleted: (guest) => {
+        allGuests.value = allGuests.value.filter(g => g.id !== guest.id)
+        tables.value.forEach(table => {
+            table.guests = table.guests.filter(g => g.id !== guest.id)
+        })
+    },
+})
+
+useRealtimeResource<SeatingTable>('seating_table', {
+    onCreatedOrUpdated: upsertTable,
+    onDeleted: (table) => {
+        tables.value = tables.value.filter(t => t.id !== table.id)
+        const freedIds = new Set(table.guests.map(g => g.id))
+        allGuests.value = allGuests.value.map(g => (freedIds.has(g.id) ? { ...g, seating_table_id: null } : g))
+    },
+})
 </script>

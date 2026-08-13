@@ -166,6 +166,7 @@ import { formatAmount } from '@/utils/currency'
 import { useFavicon } from '@/composables/useFavicon'
 import { useSimulationsStore } from '@/stores/simulations'
 import QuoteStatusBadge, { type QuoteStatus } from '@/components/QuoteStatusBadge.vue'
+import { useRealtimeResource } from '@/composables/useRealtimeResource'
 
 type AnimationType = 'dj' | 'live_band' | 'photobooth' | 'fireworks' | 'magician' | 'show' | 'casino' | 'video_mapping'
 
@@ -253,9 +254,21 @@ const toggleSelected = async (animationId: number) => {
     await simulationsStore.toggleAnimation(animationId)
 }
 
+// Met à jour la liste en local avec la ressource renvoyée par l'API plutôt
+// que de tout recharger, pour ne pas faire remonter la page en haut.
+const upsertAnimation = (animation: Animation) => {
+    const index = animations.value.findIndex(a => a.id === animation.id)
+    if (index !== -1) {
+        animations.value[index] = animation
+        return
+    }
+    animations.value.push(animation)
+    animations.value.sort((a, b) => a.name.localeCompare(b.name))
+}
+
 const updateQuoteStatus = async (animation: Animation, quote_status: QuoteStatus) => {
-    await apiClient.put(`/animations/${animation.id}`, { ...animation, quote_status })
-    await fetchAnimations()
+    const { data } = await apiClient.put(`/animations/${animation.id}`, { ...animation, quote_status })
+    upsertAnimation(data)
 }
 
 const fetchAnimations = async () => {
@@ -316,22 +329,30 @@ const handleSubmit = async () => {
     if (!formAnimation.value.name.trim() || formAnimation.value.price === null) return
 
     if (isEditMode.value) {
-        await apiClient.put(`/animations/${formAnimation.value.id}`, formAnimation.value)
+        const { data } = await apiClient.put(`/animations/${formAnimation.value.id}`, formAnimation.value)
+        upsertAnimation(data)
     } else {
-        await apiClient.post('/animations', formAnimation.value)
+        const { data } = await apiClient.post('/animations', formAnimation.value)
+        upsertAnimation(data)
     }
     animationDialog.value = false
-    await fetchAnimations()
 }
 
 const onDelete = async (id: number | string | undefined) => {
     if (id === undefined) return
     await apiClient.delete(`/animations/${id}`)
-    await fetchAnimations()
+    animations.value = animations.value.filter(a => a.id !== id)
 }
 
 onMounted(() => {
     fetchAnimations()
     simulationsStore.ensureLoaded()
+})
+
+useRealtimeResource<Animation>('animation', {
+    onCreatedOrUpdated: upsertAnimation,
+    onDeleted: (animation) => {
+        animations.value = animations.value.filter(a => a.id !== animation.id)
+    },
 })
 </script>

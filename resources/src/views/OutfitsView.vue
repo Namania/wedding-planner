@@ -186,6 +186,7 @@ import { useFavicon } from '@/composables/useFavicon'
 import { useSimulationsStore } from '@/stores/simulations'
 import { useWeddingStore } from '@/stores/wedding'
 import QuoteStatusBadge, { type QuoteStatus } from '@/components/QuoteStatusBadge.vue'
+import { useRealtimeResource } from '@/composables/useRealtimeResource'
 
 type Spouse = 'spouse_1' | 'spouse_2'
 
@@ -239,8 +240,20 @@ const toggleSelected = async (outfitId: number) => {
     await simulationsStore.toggleOutfit(outfitId)
 }
 
+// Met à jour la liste en local avec la ressource renvoyée par l'API plutôt
+// que de tout recharger, pour ne pas faire remonter la page en haut.
+const upsertOutfit = (outfit: Outfit) => {
+    const index = outfits.value.findIndex(o => o.id === outfit.id)
+    if (index !== -1) {
+        outfits.value[index] = outfit
+        return
+    }
+    outfits.value.push(outfit)
+    outfits.value.sort((a, b) => a.name.localeCompare(b.name))
+}
+
 const updateQuoteStatus = async (outfit: Outfit, quote_status: QuoteStatus) => {
-    await apiClient.put(`/outfits/${outfit.id}`, {
+    const { data } = await apiClient.put(`/outfits/${outfit.id}`, {
         name: outfit.name,
         price: outfit.price,
         spouse: outfit.spouse,
@@ -249,7 +262,7 @@ const updateQuoteStatus = async (outfit: Outfit, quote_status: QuoteStatus) => {
         note: outfit.note,
         quote_status,
     })
-    await fetchOutfits()
+    upsertOutfit(data)
 }
 
 const fetchOutfits = async () => {
@@ -361,12 +374,13 @@ const handleSubmit = async () => {
 
         if (isEditMode.value) {
             data.append('_method', 'PUT')
-            await apiClient.post(`/outfits/${formOutfit.value.id}`, data, config)
+            const { data: updated } = await apiClient.post(`/outfits/${formOutfit.value.id}`, data, config)
+            upsertOutfit(updated)
         } else {
-            await apiClient.post('/outfits', data, config)
+            const { data: created } = await apiClient.post('/outfits', data, config)
+            upsertOutfit(created)
         }
         outfitDialog.value = false
-        await fetchOutfits()
     } finally {
         saving.value = false
     }
@@ -375,11 +389,18 @@ const handleSubmit = async () => {
 const onDelete = async (id: number | string | undefined) => {
     if (id === undefined) return
     await apiClient.delete(`/outfits/${id}`)
-    await fetchOutfits()
+    outfits.value = outfits.value.filter(o => o.id !== id)
 }
 
 onMounted(() => {
     fetchOutfits()
     simulationsStore.ensureLoaded()
+})
+
+useRealtimeResource<Outfit>('outfit', {
+    onCreatedOrUpdated: upsertOutfit,
+    onDeleted: (outfit) => {
+        outfits.value = outfits.value.filter(o => o.id !== outfit.id)
+    },
 })
 </script>

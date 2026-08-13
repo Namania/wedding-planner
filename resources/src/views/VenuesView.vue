@@ -160,6 +160,7 @@ import { formatAmount } from '@/utils/currency'
 import { useFavicon } from '@/composables/useFavicon'
 import { useSimulationsStore } from '@/stores/simulations'
 import QuoteStatusBadge, { type QuoteStatus } from '@/components/QuoteStatusBadge.vue'
+import { useRealtimeResource } from '@/composables/useRealtimeResource'
 
 interface Venue {
     id: number
@@ -202,9 +203,21 @@ const toggleSelected = async (venueId: number) => {
     await simulationsStore.toggleSelection('venue_id', venueId)
 }
 
+// Met à jour la liste en local avec la ressource renvoyée par l'API plutôt
+// que de tout recharger, pour ne pas faire remonter la page en haut.
+const upsertVenue = (venue: Venue) => {
+    const index = venues.value.findIndex(v => v.id === venue.id)
+    if (index !== -1) {
+        venues.value[index] = venue
+        return
+    }
+    venues.value.push(venue)
+    venues.value.sort((a, b) => a.name.localeCompare(b.name))
+}
+
 const updateQuoteStatus = async (venue: Venue, quote_status: QuoteStatus) => {
-    await apiClient.put(`/venues/${venue.id}`, { ...venue, quote_status })
-    await fetchVenues()
+    const { data } = await apiClient.put(`/venues/${venue.id}`, { ...venue, quote_status })
+    upsertVenue(data)
 }
 
 const fetchVenues = async () => {
@@ -258,22 +271,30 @@ const handleSubmit = async () => {
     if (!formVenue.value.name.trim() || formVenue.value.price === null) return
 
     if (isEditMode.value) {
-        await apiClient.put(`/venues/${formVenue.value.id}`, formVenue.value)
+        const { data } = await apiClient.put(`/venues/${formVenue.value.id}`, formVenue.value)
+        upsertVenue(data)
     } else {
-        await apiClient.post('/venues', formVenue.value)
+        const { data } = await apiClient.post('/venues', formVenue.value)
+        upsertVenue(data)
     }
     venueDialog.value = false
-    await fetchVenues()
 }
 
 const onDelete = async (id: number | string | undefined) => {
     if (id === undefined) return
     await apiClient.delete(`/venues/${id}`)
-    await fetchVenues()
+    venues.value = venues.value.filter(v => v.id !== id)
 }
 
 onMounted(() => {
     fetchVenues()
     simulationsStore.ensureLoaded()
+})
+
+useRealtimeResource<Venue>('venue', {
+    onCreatedOrUpdated: upsertVenue,
+    onDeleted: (venue) => {
+        venues.value = venues.value.filter(v => v.id !== venue.id)
+    },
 })
 </script>

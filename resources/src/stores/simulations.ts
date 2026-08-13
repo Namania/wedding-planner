@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import apiClient from '@/api/client'
+import echo from '@/echo'
 import type { QuoteStatus } from '@/components/QuoteStatusBadge.vue'
 
 export interface SimulationVenue {
@@ -74,6 +75,28 @@ export const useSimulationsStore = defineStore('simulations', () => {
     async function ensureLoaded() {
         if (!isLoaded.value) await fetchSimulations()
     }
+
+    // Met à jour la liste en local avec la ressource reçue (API ou temps réel)
+    // plutôt que de tout recharger.
+    function upsertSimulation(simulation: Simulation) {
+        const index = simulations.value.findIndex(s => s.id === simulation.id)
+        if (index !== -1) {
+            simulations.value[index] = simulation
+        } else {
+            simulations.value.push(simulation)
+        }
+    }
+
+    // Abonnement unique pour toute l'app (le store est un singleton) : le
+    // conjoint voit les scénarios de simulation se mettre à jour en direct.
+    echo.private('wedding').listen('.resource.changed', (event: { resource: string; action: string; payload: Simulation }) => {
+        if (event.resource !== 'simulation') return
+        if (event.action === 'deleted') {
+            simulations.value = simulations.value.filter(s => s.id !== event.payload.id)
+        } else {
+            upsertSimulation(event.payload)
+        }
+    })
 
     async function createSimulation(name: string) {
         await apiClient.post('/simulations', { name })

@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BroadcastsChanges;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Animation extends Model
 {
+    use BroadcastsChanges, HasFactory;
+
     // Types d'animations proposés pour un mariage.
     public const TYPES = [
         'dj',

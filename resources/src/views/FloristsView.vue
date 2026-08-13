@@ -166,6 +166,7 @@ import { formatAmount } from '@/utils/currency'
 import { useFavicon } from '@/composables/useFavicon'
 import { useSimulationsStore } from '@/stores/simulations'
 import QuoteStatusBadge, { type QuoteStatus } from '@/components/QuoteStatusBadge.vue'
+import { useRealtimeResource } from '@/composables/useRealtimeResource'
 
 type FloralStyle = 'champetre' | 'romantique' | 'moderne' | 'exotique' | 'boheme' | 'classique' | 'luxueux'
 
@@ -249,9 +250,21 @@ const toggleSelected = async (floristId: number) => {
     await simulationsStore.toggleSelection('florist_id', floristId)
 }
 
+// Met à jour la liste en local avec la ressource renvoyée par l'API plutôt
+// que de tout recharger, pour ne pas faire remonter la page en haut.
+const upsertFlorist = (florist: Florist) => {
+    const index = florists.value.findIndex(f => f.id === florist.id)
+    if (index !== -1) {
+        florists.value[index] = florist
+        return
+    }
+    florists.value.push(florist)
+    florists.value.sort((a, b) => a.name.localeCompare(b.name))
+}
+
 const updateQuoteStatus = async (florist: Florist, quote_status: QuoteStatus) => {
-    await apiClient.put(`/florists/${florist.id}`, { ...florist, quote_status })
-    await fetchFlorists()
+    const { data } = await apiClient.put(`/florists/${florist.id}`, { ...florist, quote_status })
+    upsertFlorist(data)
 }
 
 const fetchFlorists = async () => {
@@ -312,22 +325,30 @@ const handleSubmit = async () => {
     if (!formFlorist.value.name.trim() || formFlorist.value.price === null) return
 
     if (isEditMode.value) {
-        await apiClient.put(`/florists/${formFlorist.value.id}`, formFlorist.value)
+        const { data } = await apiClient.put(`/florists/${formFlorist.value.id}`, formFlorist.value)
+        upsertFlorist(data)
     } else {
-        await apiClient.post('/florists', formFlorist.value)
+        const { data } = await apiClient.post('/florists', formFlorist.value)
+        upsertFlorist(data)
     }
     floristDialog.value = false
-    await fetchFlorists()
 }
 
 const onDelete = async (id: number | string | undefined) => {
     if (id === undefined) return
     await apiClient.delete(`/florists/${id}`)
-    await fetchFlorists()
+    florists.value = florists.value.filter(f => f.id !== id)
 }
 
 onMounted(() => {
     fetchFlorists()
     simulationsStore.ensureLoaded()
+})
+
+useRealtimeResource<Florist>('florist', {
+    onCreatedOrUpdated: upsertFlorist,
+    onDeleted: (florist) => {
+        florists.value = florists.value.filter(f => f.id !== florist.id)
+    },
 })
 </script>

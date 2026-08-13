@@ -1,0 +1,32 @@
+# Caddyfile de prod : identique au défaut de FrankenPHP, avec une route en
+# plus pour le websocket Reverb, qui tourne dans le même conteneur sur un
+# port interne (127.0.0.1) — un seul domaine/port exposé publiquement.
+#
+# https://frankenphp.dev/docs/config
+# https://caddyserver.com/docs/caddyfile
+
+{
+	skip_install_trust
+
+	{$CADDY_GLOBAL_OPTIONS}
+
+	frankenphp {
+		{$FRANKENPHP_CONFIG}
+	}
+}
+
+{$CADDY_EXTRA_CONFIG}
+
+{$SERVER_NAME:localhost} {
+	root {$SERVER_ROOT:public/}
+	encode zstd br gzip
+
+	@reverb path /app/*
+	reverse_proxy @reverb 127.0.0.1:{$REVERB_SERVER_PORT:8081}
+
+	{$CADDY_SERVER_EXTRA_DIRECTIVES}
+
+	php_server
+}
+
+import Caddyfile.d/*.caddyfile

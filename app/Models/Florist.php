@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BroadcastsChanges;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Florist extends Model
 {
+    use BroadcastsChanges, HasFactory;
+
     // Styles floraux proposés pour un mariage.
     public const STYLES = [
         'champetre',
