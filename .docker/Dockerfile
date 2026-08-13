@@ -42,6 +42,10 @@ RUN install-php-extensions \
 
 COPY .docker/php/opcache-prod.ini $PHP_INI_DIR/conf.d/opcache-prod.ini
 
+# Route /app/* vers Reverb (même conteneur, port interne) en plus du Caddyfile
+# par défaut de FrankenPHP — un seul domaine/port exposé pour tout.
+COPY .docker/Caddyfile /etc/frankenphp/Caddyfile
+
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 WORKDIR /app
