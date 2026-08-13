@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BroadcastsChanges;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Outfit extends Model
 {
+    use BroadcastsChanges, HasFactory;
+
     // À quel marié appartient une tenue candidate.
     public const SPOUSES = [
         'spouse_1',

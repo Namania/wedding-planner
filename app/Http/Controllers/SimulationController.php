@@ -135,7 +135,14 @@ class SimulationController extends Controller
     public function activate(Simulation $simulation)
     {
         DB::transaction(function () use ($simulation) {
-            Simulation::where('is_active', true)->update(['is_active' => false]);
+            // Mise à jour modèle par modèle (pas une requête de masse) pour que
+            // les events Eloquent se déclenchent et diffusent le changement en
+            // temps réel à la simulation désactivée aussi.
+            Simulation::where('is_active', true)
+                ->where('id', '!=', $simulation->id)
+                ->get()
+                ->each(fn (Simulation $active) => $active->update(['is_active' => false]));
+
             $simulation->update(['is_active' => true]);
         });
 

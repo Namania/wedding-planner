@@ -107,6 +107,7 @@ import Skeleton from 'primevue/skeleton'
 import { useConfirm } from 'primevue/useconfirm'
 import apiClient from '@/api/client'
 import { useWeddingStore } from '@/stores/wedding'
+import { useRealtimeResource } from '@/composables/useRealtimeResource'
 
 interface TimelineEvent {
     id: number
@@ -155,6 +156,20 @@ const formatDayLabel = (dateKey: string): string => {
 
 const formatTime = (isoDate: string): string =>
     new Date(isoDate).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+
+// Met à jour la liste en local avec la ressource renvoyée par l'API plutôt
+// que de tout recharger, pour ne pas faire remonter la page en haut. On
+// retrie par date/heure (comme l'API) puisqu'un événement déplacé doit
+// changer de groupe de jour et/ou de position dans le planning.
+const upsertEvent = (event: TimelineEvent) => {
+    const index = events.value.findIndex(e => e.id === event.id)
+    if (index !== -1) {
+        events.value[index] = event
+    } else {
+        events.value.push(event)
+    }
+    events.value.sort((a, b) => (a.starts_at < b.starts_at ? -1 : a.starts_at > b.starts_at ? 1 : 0))
+}
 
 const fetchEvents = async () => {
     isLoading.value = true
@@ -209,19 +224,27 @@ const handleSubmit = async () => {
     const payload = { ...formEvent.value, starts_at: formEvent.value.starts_at.toISOString() }
 
     if (isEditMode.value) {
-        await apiClient.put(`/timeline-events/${formEvent.value.id}`, payload)
+        const { data } = await apiClient.put(`/timeline-events/${formEvent.value.id}`, payload)
+        upsertEvent(data)
     } else {
-        await apiClient.post('/timeline-events', payload)
+        const { data } = await apiClient.post('/timeline-events', payload)
+        upsertEvent(data)
     }
     eventDialog.value = false
-    await fetchEvents()
 }
 
 const onDelete = async (id: number | string | undefined) => {
     if (id === undefined) return
     await apiClient.delete(`/timeline-events/${id}`)
-    await fetchEvents()
+    events.value = events.value.filter(e => e.id !== id)
 }
 
 onMounted(fetchEvents)
+
+useRealtimeResource<TimelineEvent>('timeline_event', {
+    onCreatedOrUpdated: upsertEvent,
+    onDeleted: (event) => {
+        events.value = events.value.filter(e => e.id !== event.id)
+    },
+})
 </script>

@@ -16,7 +16,6 @@ declare module 'vue' {
     Button: typeof import('primevue/button')['default']
     LogoutButton: typeof import('./src/components/LogoutButton.vue')['default']
     MenuToogle: typeof import('./src/components/MenuToogle.vue')['default']
-    MultiSelect: typeof import('primevue/multiselect')['default']
     QuoteStatusBadge: typeof import('./src/components/QuoteStatusBadge.vue')['default']
     RadialMeter: typeof import('./src/components/RadialMeter.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

@@ -167,6 +167,7 @@ import { formatAmount } from '@/utils/currency'
 import { useFavicon } from '@/composables/useFavicon'
 import { useSimulationsStore } from '@/stores/simulations'
 import QuoteStatusBadge, { type QuoteStatus } from '@/components/QuoteStatusBadge.vue'
+import { useRealtimeResource } from '@/composables/useRealtimeResource'
 
 type ServiceType = 'cocktail' | 'cocktail_dinatoire' | 'seated' | 'buffet' | 'food_truck' | 'brunch' | 'live_cooking'
 
@@ -250,9 +251,21 @@ const toggleSelected = async (catererId: number) => {
     await simulationsStore.toggleSelection('caterer_id', catererId)
 }
 
+// Met à jour la liste en local avec la ressource renvoyée par l'API plutôt
+// que de tout recharger, pour ne pas faire remonter la page en haut.
+const upsertCaterer = (caterer: Caterer) => {
+    const index = caterers.value.findIndex(c => c.id === caterer.id)
+    if (index !== -1) {
+        caterers.value[index] = caterer
+        return
+    }
+    caterers.value.push(caterer)
+    caterers.value.sort((a, b) => a.name.localeCompare(b.name))
+}
+
 const updateQuoteStatus = async (caterer: Caterer, quote_status: QuoteStatus) => {
-    await apiClient.put(`/caterers/${caterer.id}`, { ...caterer, quote_status })
-    await fetchCaterers()
+    const { data } = await apiClient.put(`/caterers/${caterer.id}`, { ...caterer, quote_status })
+    upsertCaterer(data)
 }
 
 const fetchCaterers = async () => {
@@ -313,22 +326,30 @@ const handleSubmit = async () => {
     if (!formCaterer.value.name.trim() || formCaterer.value.price_per_person === null) return
 
     if (isEditMode.value) {
-        await apiClient.put(`/caterers/${formCaterer.value.id}`, formCaterer.value)
+        const { data } = await apiClient.put(`/caterers/${formCaterer.value.id}`, formCaterer.value)
+        upsertCaterer(data)
     } else {
-        await apiClient.post('/caterers', formCaterer.value)
+        const { data } = await apiClient.post('/caterers', formCaterer.value)
+        upsertCaterer(data)
     }
     catererDialog.value = false
-    await fetchCaterers()
 }
 
 const onDelete = async (id: number | string | undefined) => {
     if (id === undefined) return
     await apiClient.delete(`/caterers/${id}`)
-    await fetchCaterers()
+    caterers.value = caterers.value.filter(c => c.id !== id)
 }
 
 onMounted(() => {
     fetchCaterers()
     simulationsStore.ensureLoaded()
+})
+
+useRealtimeResource<Caterer>('caterer', {
+    onCreatedOrUpdated: upsertCaterer,
+    onDeleted: (caterer) => {
+        caterers.value = caterers.value.filter(c => c.id !== caterer.id)
+    },
 })
 </script>

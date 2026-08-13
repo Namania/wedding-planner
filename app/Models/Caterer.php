@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BroadcastsChanges;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Caterer extends Model
 {
+    use BroadcastsChanges, HasFactory;
+
     // Types de prestation de repas pour un mariage, proposés par les traiteurs.
     public const SERVICE_TYPES = [
         'cocktail',

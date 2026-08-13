@@ -131,6 +131,7 @@ import { useConfirm } from 'primevue/useconfirm'
 import apiClient from '@/api/client'
 import { useWeddingStore } from '@/stores/wedding'
 import { parseDateOnly, toDateInputValue } from '@/utils/date'
+import { useRealtimeResource } from '@/composables/useRealtimeResource'
 
 type TaskStatus = 'todo' | 'in_progress' | 'done'
 type TaskCategory = 'administratif' | 'prestataires' | 'tenues' | 'deco' | 'invitations' | 'beaute' | 'logistique' | 'autre'
@@ -234,6 +235,27 @@ const isLoading = ref<boolean>(true)
 
 const totalTasks = computed(() => tasks.value.length)
 
+// Met à jour la liste en local avec la ressource renvoyée par l'API plutôt
+// que de tout recharger, pour ne pas faire remonter la page en haut. Une
+// tâche modifiée garde sa place ; seule une tâche créée est insérée triée
+// (même ordre que l'API : échéance puis titre).
+const upsertTask = (task: Task) => {
+    const index = tasks.value.findIndex(t => t.id === task.id)
+    if (index !== -1) {
+        tasks.value[index] = task
+        return
+    }
+    tasks.value.push(task)
+    tasks.value.sort((a, b) => {
+        if (a.due_date !== b.due_date) {
+            if (a.due_date === null) return 1
+            if (b.due_date === null) return -1
+            return a.due_date < b.due_date ? -1 : 1
+        }
+        return a.title.localeCompare(b.title)
+    })
+}
+
 const fetchTasks = async () => {
     isLoading.value = true
     try {
@@ -290,19 +312,27 @@ const handleSubmit = async () => {
     if (!formTask.value.title.trim()) return
 
     if (isEditMode.value) {
-        await apiClient.put(`/tasks/${formTask.value.id}`, toPayload(formTask.value))
+        const { data } = await apiClient.put(`/tasks/${formTask.value.id}`, toPayload(formTask.value))
+        upsertTask(data)
     } else {
-        await apiClient.post('/tasks', toPayload(formTask.value))
+        const { data } = await apiClient.post('/tasks', toPayload(formTask.value))
+        upsertTask(data)
     }
     taskDialog.value = false
-    await fetchTasks()
 }
 
 const onDelete = async (id: number | string | undefined) => {
     if (id === undefined) return
     await apiClient.delete(`/tasks/${id}`)
-    await fetchTasks()
+    tasks.value = tasks.value.filter(t => t.id !== id)
 }
 
 onMounted(fetchTasks)
+
+useRealtimeResource<Task>('task', {
+    onCreatedOrUpdated: upsertTask,
+    onDeleted: (task) => {
+        tasks.value = tasks.value.filter(t => t.id !== task.id)
+    },
+})
 </script>

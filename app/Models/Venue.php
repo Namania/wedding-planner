@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BroadcastsChanges;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Venue extends Model
 {
+    use BroadcastsChanges, HasFactory;
+
     // Suivi de la demande de devis auprès du prestataire.
     public const QUOTE_STATUSES = [
         'requested',

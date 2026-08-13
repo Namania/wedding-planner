@@ -157,6 +157,7 @@ import ConfirmPopup from 'primevue/confirmpopup'
 import Skeleton from 'primevue/skeleton'
 import { useConfirm } from 'primevue/useconfirm'
 import apiClient from '@/api/client'
+import { useRealtimeResource } from '@/composables/useRealtimeResource'
 
 interface Guest {
     id?: number | string
@@ -275,23 +276,36 @@ const confirmDelete = (event: Event) => {
     })
 }
 
+// Met à jour la liste en local avec la ressource renvoyée par l'API plutôt
+// que de tout recharger, pour ne pas faire remonter la page en haut.
+const upsertGuest = (guest: Guest) => {
+    const index = guests.value.findIndex(g => g.id === guest.id)
+    if (index !== -1) {
+        guests.value[index] = guest
+        return
+    }
+    guests.value.push(guest)
+    guests.value.sort((a, b) => a.name.localeCompare(b.name))
+}
+
 const handleSubmit = async () => {
     submitted.value = true
     if (!formGuest.value.name.trim()) return
 
     if (isEditMode.value) {
-        await apiClient.put(`/guests/${formGuest.value.id}`, formGuest.value)
+        const { data } = await apiClient.put(`/guests/${formGuest.value.id}`, formGuest.value)
+        upsertGuest(data)
     } else {
-        await apiClient.post('/guests', formGuest.value)
+        const { data } = await apiClient.post('/guests', formGuest.value)
+        upsertGuest(data)
     }
     guestDialog.value = false
-    await fetchGuests()
 }
 
 const onDelete = async (id: number | string | undefined) => {
     if (id === undefined) return
     await apiClient.delete(`/guests/${id}`)
-    await fetchGuests()
+    guests.value = guests.value.filter(g => g.id !== id)
 }
 
 const getInitials = (name: string): string => {
@@ -324,4 +338,11 @@ const getRoleClass = (role: string) => {
 }
 
 onMounted(fetchGuests)
+
+useRealtimeResource<Guest>('guest', {
+    onCreatedOrUpdated: upsertGuest,
+    onDeleted: (guest) => {
+        guests.value = guests.value.filter(g => g.id !== guest.id)
+    },
+})
 </script>
