@@ -3,6 +3,10 @@
 # injected into this container (build time has no access to real prod env).
 set -e
 
+# Idem côté front : le JS a été buildé avec des jetons de substitution
+# (voir resources/.env.production), remplacés ici par les vraies valeurs.
+/usr/local/bin/replace-runtime-env.sh
+
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache

@@ -4,6 +4,7 @@
 .env
 .env.*
 !.env.example
+!resources/.env.production
 
 storage/*.key
 storage/logs

@@ -3,6 +3,9 @@
 .env
 .env.backup
 .env.production
+# Contient uniquement des jetons de substitution (aucun secret) : voir
+# .docker/replace-runtime-env.sh — doit être commité et présent au build.
+!resources/.env.production
 .phpactor.json
 .phpunit.result.cache
 /.codex

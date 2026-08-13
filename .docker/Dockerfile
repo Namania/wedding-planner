@@ -4,23 +4,11 @@
 
 FROM node:20-alpine AS frontend
 
-# Vite inline ces variables dans le bundle JS au moment du build : elles
-# doivent arriver comme build args (Dokploy: "Build Time Arguments"), pas
-# comme simples variables d'environnement du conteneur au runtime.
-ARG VITE_APP_NAME
-ARG VITE_API_BASE_URL
-ARG VITE_ALLOWED_HOST
-ARG VITE_REVERB_APP_KEY
-ARG VITE_REVERB_HOST
-ARG VITE_REVERB_PORT
-ARG VITE_REVERB_SCHEME
-ENV VITE_APP_NAME=$VITE_APP_NAME \
-    VITE_API_BASE_URL=$VITE_API_BASE_URL \
-    VITE_ALLOWED_HOST=$VITE_ALLOWED_HOST \
-    VITE_REVERB_APP_KEY=$VITE_REVERB_APP_KEY \
-    VITE_REVERB_HOST=$VITE_REVERB_HOST \
-    VITE_REVERB_PORT=$VITE_REVERB_PORT \
-    VITE_REVERB_SCHEME=$VITE_REVERB_SCHEME
+# Le build utilise resources/.env.production, qui ne contient que des jetons
+# de substitution (__RUNTIME_...__) — les vraies valeurs sont injectées au
+# démarrage du conteneur par .docker/replace-runtime-env.sh, à partir de
+# variables d'environnement classiques. Pas de "build args" à configurer
+# côté plateforme de déploiement (peu fiable selon la plateforme).
 
 WORKDIR /app
 
@@ -62,7 +50,9 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction \
     && chown -R www-data:www-data /app /data /config
 
 COPY .docker/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+COPY .docker/replace-runtime-env.sh /usr/local/bin/replace-runtime-env.sh
+
+RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/replace-runtime-env.sh
 
 USER www-data
 
