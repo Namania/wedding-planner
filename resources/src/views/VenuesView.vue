@@ -61,11 +61,12 @@
                         </div>
 
                         <span v-if="venue.note" class="text-xs text-muted-color mt-1 truncate">{{ venue.note }}</span>
-                        <span
-                            v-else
-                            class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full whitespace-nowrap shrink-0 bg-surface-100 dark:bg-surface-800 text-muted-color">
-                            {{ formatAmount(venue.price) }}
-                        </span>
+                        <div v-else>
+                            <span
+                                class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full whitespace-nowrap shrink-0 bg-surface-100 dark:bg-surface-800 text-muted-color">
+                                {{ formatAmount(venue.price) }}
+                            </span>
+                        </div>
                     </div>
                 </div>
 

@@ -73,7 +73,9 @@
             <div
                 class="bg-surface-0 dark:bg-surface-900 p-5 rounded-2xl border border-surface shadow-sm flex items-center gap-4">
                 <div
-                    class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl shrink-0">
+                    class="w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0"
+                    :class="metrics.budget.max - metrics.budget.current > 0 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-red-500/10 text-red-600 dark:text-red-400'"
+                >
                     <i class="pi pi-money-bill"></i>
                 </div>
                 <div class="flex flex-col">
