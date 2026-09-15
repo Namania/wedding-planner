@@ -11,8 +11,8 @@ use OpenApi\Attributes as OA;
     type: 'object',
     properties: [
         new OA\Property(property: 'id', type: 'integer', example: 1),
-        new OA\Property(property: 'spouse_1_name', type: 'string', example: 'Margaux'),
-        new OA\Property(property: 'spouse_2_name', type: 'string', example: 'Mael'),
+        new OA\Property(property: 'spouse_1_name', type: 'string', example: 'TOTO1'),
+        new OA\Property(property: 'spouse_2_name', type: 'string', example: 'TOTO2'),
         new OA\Property(property: 'date', type: 'string', format: 'date', example: '2028-01-01'),
     ]
 )]
@@ -21,8 +21,8 @@ use OpenApi\Attributes as OA;
     type: 'object',
     required: ['spouse_1_name', 'spouse_2_name', 'date'],
     properties: [
-        new OA\Property(property: 'spouse_1_name', type: 'string', example: 'Margaux'),
-        new OA\Property(property: 'spouse_2_name', type: 'string', example: 'Mael'),
+        new OA\Property(property: 'spouse_1_name', type: 'string', example: 'TOTO1'),
+        new OA\Property(property: 'spouse_2_name', type: 'string', example: 'TOTO2'),
         new OA\Property(property: 'date', type: 'string', format: 'date', example: '2028-01-01'),
     ]
 )]

@@ -23,8 +23,8 @@ return new class extends Migration
         // Le mariage est un réglage unique (une seule ligne) : on l'initialise ici
         // pour que l'app ait toujours une valeur à afficher après la migration.
         DB::table('weddings')->insert([
-            'spouse_1_name' => 'Margaux',
-            'spouse_2_name' => 'Mael',
+            'spouse_1_name' => 'TOTO1',
+            'spouse_2_name' => 'TOTO2',
             'date' => '2028-01-01',
             'created_at' => now(),
             'updated_at' => now(),
