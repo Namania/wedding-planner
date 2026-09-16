@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -20,7 +23,24 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // API only : pas d'enveloppe "data" par défaut sur les Resources, pour un contrat JSON cohérent.
         JsonResource::withoutWrapping();
+
+        $this->configureGalleryRateLimiting();
+    }
+
+    private function configureGalleryRateLimiting(): void
+    {
+        RateLimiter::for('gallery-invite', fn (Request $request) => Limit::perMinute(20)->by('gi|'.$request->ip()));
+
+        RateLimiter::for('gallery-register', fn (Request $request) => Limit::perHour(10)->by('gr|'.$request->ip()));
+
+        RateLimiter::for('gallery-login', fn (Request $request) => [
+            Limit::perMinute(5)->by('gl|'.$request->ip()),
+            Limit::perMinute(10)->by('gln|'.mb_strtolower((string) $request->input('name'))),
+        ]);
+
+        RateLimiter::for('gallery-upload', fn (Request $request) => Limit::perMinutes(10, 30)->by('gu|'.($request->user()?->getKey() ?? $request->ip())));
+
+        RateLimiter::for('gallery-files', fn (Request $request) => Limit::perMinute(300)->by('gf|'.$request->ip()));
     }
 }

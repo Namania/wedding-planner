@@ -5,8 +5,13 @@ import BudgetView from '@/views/BudgetView.vue'
 import CaterersView from '@/views/CaterersView.vue'
 import DashboardView from '@/views/DashboardView.vue'
 import FloristsView from '@/views/FloristsView.vue'
+import GalleryAdminView from '@/views/GalleryAdminView.vue'
+import GalleryLoginView from '@/views/GalleryLoginView.vue'
+import GalleryView from '@/views/GalleryView.vue'
 import GuestsView from '@/views/GuestsView.vue'
 import LoginView from '@/views/LoginView.vue'
+import ShareView from '@/views/ShareView.vue'
+import SlideshowView from '@/views/SlideshowView.vue'
 import OutfitsView from '@/views/OutfitsView.vue'
 import SeatingView from '@/views/SeatingView.vue'
 import SettingsView from '@/views/SettingsView.vue'
@@ -22,6 +27,27 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: LoginView,
+    },
+    {
+      path: '/share/:token',
+      name: 'gallery-share',
+      component: ShareView,
+    },
+    {
+      path: '/gallery/login',
+      name: 'gallery-login',
+      component: GalleryLoginView,
+    },
+    {
+      path: '/gallery',
+      name: 'gallery',
+      component: GalleryView,
+    },
+    {
+      path: '/slideshow',
+      name: 'slideshow',
+      component: SlideshowView,
+      meta: { requiresAuth: true },
     },
     {
       path: '/',
@@ -97,6 +123,12 @@ const router = createRouter({
           path: 'settings',
           name: 'settings',
           component: SettingsView,
+          meta: { requiresAuth: true },
+        },
+        {
+          path: 'photos',
+          name: 'photos',
+          component: GalleryAdminView,
           meta: { requiresAuth: true },
         },
       ]

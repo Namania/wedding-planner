@@ -29,7 +29,6 @@ done
 
 php artisan migrate --force
 
-# Données de base de l'app (mariage, budget, planning) — idempotent.
 php artisan db:seed --class=DefaultDataSeeder --force
 
 exec "$@"

@@ -10,17 +10,24 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
-    libpq-dev
+    libpq-dev \
+    libjpeg62-turbo-dev \
+    libwebp-dev \
+    libfreetype6-dev
 
 # Extensions PHP
-RUN docker-php-ext-install \
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+    && docker-php-ext-install \
     pdo \
     pdo_pgsql \
     pgsql \
     mbstring \
     zip \
     exif \
-    pcntl
+    pcntl \
+    gd
+
+COPY .docker/php/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
 
 # Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

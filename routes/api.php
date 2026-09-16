@@ -6,6 +6,9 @@ use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CatererController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FloristController;
+use App\Http\Controllers\GalleryAdminController;
+use App\Http\Controllers\GalleryAuthController;
+use App\Http\Controllers\GalleryPhotoController;
 use App\Http\Controllers\GuestController;
 use App\Http\Controllers\OutfitController;
 use App\Http\Controllers\SeatingTableController;
@@ -25,7 +28,28 @@ Route::get('/', function () {
 
 Route::post('/login', [AuthController::class, 'login']);
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::get('gallery/photos/{photo}/{variant}', [GalleryPhotoController::class, 'file'])
+    ->middleware(['signed', 'throttle:gallery-files'])
+    ->name('gallery.photos.file');
+
+Route::get('gallery/invite/{token}', [GalleryAuthController::class, 'checkInvite'])
+    ->middleware('throttle:gallery-invite');
+Route::post('gallery/register', [GalleryAuthController::class, 'register'])
+    ->middleware('throttle:gallery-register');
+Route::post('gallery/login', [GalleryAuthController::class, 'login'])
+    ->middleware('throttle:gallery-login');
+
+Route::middleware(['auth:sanctum', 'gallery.guest'])->prefix('gallery')->group(function () {
+    Route::get('me', [GalleryAuthController::class, 'me']);
+    Route::post('logout', [GalleryAuthController::class, 'logout']);
+
+    Route::get('photos', [GalleryPhotoController::class, 'index']);
+    Route::post('photos', [GalleryPhotoController::class, 'store'])
+        ->middleware('throttle:gallery-upload');
+    Route::delete('photos/{photo}', [GalleryPhotoController::class, 'destroy']);
+});
+
+Route::middleware(['auth:sanctum', 'admin.user'])->group(function () {
     Route::get('/user', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
@@ -47,4 +71,23 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('wedding', [WeddingController::class, 'show']);
     Route::put('wedding', [WeddingController::class, 'update']);
+
+    Route::prefix('gallery-admin')->group(function () {
+        Route::get('settings', [GalleryAdminController::class, 'showSettings']);
+        Route::put('settings', [GalleryAdminController::class, 'updateSettings']);
+        Route::post('settings/rotate-token', [GalleryAdminController::class, 'rotateToken']);
+
+        Route::get('guests', [GalleryAdminController::class, 'guests']);
+        Route::patch('guests/{guest}/ban', [GalleryAdminController::class, 'ban']);
+        Route::patch('guests/{guest}/unban', [GalleryAdminController::class, 'unban']);
+        Route::post('guests/{guest}/reset-pin', [GalleryAdminController::class, 'resetPin']);
+        Route::delete('guests/{guest}', [GalleryAdminController::class, 'destroyGuest']);
+
+        Route::get('photos', [GalleryAdminController::class, 'photos']);
+        Route::patch('photos/{photo}/hide', [GalleryAdminController::class, 'hide']);
+        Route::patch('photos/{photo}/unhide', [GalleryAdminController::class, 'unhide']);
+        Route::delete('photos/{photo}', [GalleryAdminController::class, 'destroyPhoto']);
+
+        Route::get('export', [GalleryAdminController::class, 'export']);
+    });
 });

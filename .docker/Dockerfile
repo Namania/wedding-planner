@@ -26,9 +26,11 @@ RUN install-php-extensions \
     mbstring \
     zip \
     exif \
-    pcntl
+    pcntl \
+    gd
 
 COPY .docker/php/opcache-prod.ini $PHP_INI_DIR/conf.d/opcache-prod.ini
+COPY .docker/php/uploads.ini $PHP_INI_DIR/conf.d/uploads.ini
 
 # Route /app/* vers Reverb (même conteneur, port interne) en plus du Caddyfile
 # par défaut de FrankenPHP — un seul domaine/port exposé pour tout.

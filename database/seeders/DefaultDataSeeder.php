@@ -3,10 +3,12 @@
 namespace Database\Seeders;
 
 use App\Models\Budget;
+use App\Models\GallerySettings;
 use App\Models\TimelineEvent;
 use App\Models\Wedding;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class DefaultDataSeeder extends Seeder
 {
@@ -24,6 +26,10 @@ class DefaultDataSeeder extends Seeder
             'total' => 20000,
         ]);
 
+        GallerySettings::firstOrCreate([], [
+            'invite_token' => Str::random(64),
+        ]);
+
         $this->seedTimeline($wedding);
     }
 
@@ -39,7 +45,7 @@ class DefaultDataSeeder extends Seeder
             ['title' => 'Préparatifs', 'time' => '08:00', 'note' => 'Coiffure, maquillage et habillage.'],
             ['title' => 'Cérémonie', 'time' => '15:00', 'note' => null],
             ['title' => 'Photos de couple', 'time' => '16:00', 'note' => null],
-            ["title" => "Vin d'honneur", 'time' => '17:00', 'note' => null],
+            ['title' => "Vin d'honneur", 'time' => '17:00', 'note' => null],
             ['title' => 'Repas', 'time' => '19:30', 'note' => null],
             ['title' => 'Ouverture du bal', 'time' => '21:30', 'note' => null],
             ['title' => 'Soirée dansante', 'time' => '22:00', 'note' => null],

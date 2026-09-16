@@ -7,7 +7,7 @@
     },
     "servers": [
         {
-            "url": "http://localhost",
+            "url": "http://localhost:8000",
             "description": "Serveur API"
         }
     ],
@@ -578,6 +578,654 @@
                     },
                     "404": {
                         "description": "Fleuriste introuvable"
+                    }
+                }
+            }
+        },
+        "/api/gallery-admin/settings": {
+            "get": {
+                "tags": [
+                    "GalleryAdmin"
+                ],
+                "summary": "Réglages de la galerie (token du QR code inclus)",
+                "operationId": "7c01be343db1a91516e2f33b8ea2398b",
+                "responses": {
+                    "200": {
+                        "description": "Réglages",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GallerySettings"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "GalleryAdmin"
+                ],
+                "summary": "Mettre à jour les réglages de la galerie",
+                "operationId": "e7b5eab307bdf1f10bfef5101ac5117f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GallerySettingsInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Réglages mis à jour",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GallerySettings"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    }
+                }
+            }
+        },
+        "/api/gallery-admin/settings/rotate-token": {
+            "post": {
+                "tags": [
+                    "GalleryAdmin"
+                ],
+                "summary": "Regénérer le token d'invitation (invalide tous les QR codes imprimés)",
+                "operationId": "9eeaab9673d1cf81eb3204e9c050782f",
+                "responses": {
+                    "200": {
+                        "description": "Nouveau token",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GallerySettings"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/gallery-admin/guests": {
+            "get": {
+                "tags": [
+                    "GalleryAdmin"
+                ],
+                "summary": "Liste des comptes invités de la galerie",
+                "operationId": "03d0bfa69d1cfd2b41393a672e788fc1",
+                "responses": {
+                    "200": {
+                        "description": "Comptes invités",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/GalleryGuest"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/gallery-admin/guests/{guest}/ban": {
+            "patch": {
+                "tags": [
+                    "GalleryAdmin"
+                ],
+                "summary": "Bannir un invité (masque aussi toutes ses photos)",
+                "operationId": "da99e3059fa462bd776124495bc34199",
+                "parameters": [
+                    {
+                        "name": "guest",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Invité banni",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GalleryGuest"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/gallery-admin/guests/{guest}/unban": {
+            "patch": {
+                "tags": [
+                    "GalleryAdmin"
+                ],
+                "summary": "Débannir un invité (ses photos restent masquées)",
+                "operationId": "821fb22b51d30fb8bb2d8aeb9b263a0d",
+                "parameters": [
+                    {
+                        "name": "guest",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Invité débanni",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GalleryGuest"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/gallery-admin/guests/{guest}/reset-pin": {
+            "post": {
+                "tags": [
+                    "GalleryAdmin"
+                ],
+                "summary": "Regénérer le PIN d'un invité (affiché une seule fois)",
+                "operationId": "6aa03f6f9c0fccbe3fc65401adb7d01d",
+                "parameters": [
+                    {
+                        "name": "guest",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Nouveau PIN en clair, à transmettre à l'invité"
+                    }
+                }
+            }
+        },
+        "/api/gallery-admin/guests/{guest}": {
+            "delete": {
+                "tags": [
+                    "GalleryAdmin"
+                ],
+                "summary": "Supprimer un compte invité et toutes ses photos",
+                "operationId": "35da9ca316d177f1055c427e645c24de",
+                "parameters": [
+                    {
+                        "name": "guest",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Compte supprimé"
+                    }
+                }
+            }
+        },
+        "/api/gallery-admin/photos": {
+            "get": {
+                "tags": [
+                    "GalleryAdmin"
+                ],
+                "summary": "Toutes les photos, y compris masquées (paginées)",
+                "operationId": "164be24b1848e98e858baea6c2575b2a",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "hidden",
+                        "in": "query",
+                        "description": "Filtrer : 1 = masquées seulement",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Photos"
+                    }
+                }
+            }
+        },
+        "/api/gallery-admin/photos/{photo}/hide": {
+            "patch": {
+                "tags": [
+                    "GalleryAdmin"
+                ],
+                "summary": "Masquer une photo de la galerie",
+                "operationId": "ab5f8aff1a7a5916724399ec18710093",
+                "parameters": [
+                    {
+                        "name": "photo",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Photo masquée",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GalleryPhoto"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/gallery-admin/photos/{photo}/unhide": {
+            "patch": {
+                "tags": [
+                    "GalleryAdmin"
+                ],
+                "summary": "Rendre une photo à nouveau visible",
+                "operationId": "2edcc55922e717445727fe5df69ca99e",
+                "parameters": [
+                    {
+                        "name": "photo",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Photo visible",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GalleryPhoto"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/gallery-admin/photos/{photo}": {
+            "delete": {
+                "tags": [
+                    "GalleryAdmin"
+                ],
+                "summary": "Supprimer définitivement une photo",
+                "operationId": "a4adc7baafc73cc34bf8cad96c6138cf",
+                "parameters": [
+                    {
+                        "name": "photo",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Photo supprimée"
+                    }
+                }
+            }
+        },
+        "/api/gallery-admin/export": {
+            "get": {
+                "tags": [
+                    "GalleryAdmin"
+                ],
+                "summary": "Télécharger toutes les photos visibles en ZIP",
+                "operationId": "2553b487e3062c11fbd556652b1d8ef2",
+                "responses": {
+                    "200": {
+                        "description": "Archive ZIP"
+                    }
+                }
+            }
+        },
+        "/api/gallery/invite/{token}": {
+            "get": {
+                "tags": [
+                    "Gallery"
+                ],
+                "summary": "Vérifier un token d'invitation (page d'accueil du QR code)",
+                "operationId": "df339261bf2e8a5de94d28087f4059cb",
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Token valide, informations du mariage"
+                    },
+                    "404": {
+                        "description": "Token invalide"
+                    },
+                    "429": {
+                        "description": "Trop de tentatives"
+                    }
+                }
+            }
+        },
+        "/api/gallery/register": {
+            "post": {
+                "tags": [
+                    "Gallery"
+                ],
+                "summary": "Créer un compte invité via le token d'invitation",
+                "operationId": "a9babb245134c3af7f1e96ebf9fd1aec",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "token",
+                                    "name",
+                                    "pin"
+                                ],
+                                "properties": {
+                                    "token": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Camille"
+                                    },
+                                    "pin": {
+                                        "type": "string",
+                                        "example": "4821"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Compte créé, token de session retourné"
+                    },
+                    "404": {
+                        "description": "Token d'invitation invalide"
+                    },
+                    "422": {
+                        "description": "Erreur de validation ou inscriptions fermées"
+                    },
+                    "429": {
+                        "description": "Trop de tentatives"
+                    }
+                }
+            }
+        },
+        "/api/gallery/login": {
+            "post": {
+                "tags": [
+                    "Gallery"
+                ],
+                "summary": "Reconnexion d'un invité (prénom + PIN)",
+                "operationId": "84ff47c87dcafb04089b3fdb4c44a204",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "pin"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Camille"
+                                    },
+                                    "pin": {
+                                        "type": "string",
+                                        "example": "4821"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Connecté, token de session retourné"
+                    },
+                    "422": {
+                        "description": "Identifiants incorrects"
+                    },
+                    "429": {
+                        "description": "Trop de tentatives"
+                    }
+                }
+            }
+        },
+        "/api/gallery/me": {
+            "get": {
+                "tags": [
+                    "Gallery"
+                ],
+                "summary": "Profil de l'invité connecté",
+                "operationId": "3883984c81a3c29288ff0aac8b0b250f",
+                "responses": {
+                    "200": {
+                        "description": "Profil",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GalleryGuest"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Non authentifié"
+                    }
+                }
+            }
+        },
+        "/api/gallery/logout": {
+            "post": {
+                "tags": [
+                    "Gallery"
+                ],
+                "summary": "Déconnexion de l'invité (révoque le token courant)",
+                "operationId": "e879497100a5a36738d244e6372f422c",
+                "responses": {
+                    "200": {
+                        "description": "Déconnecté"
+                    }
+                }
+            }
+        },
+        "/api/gallery/photos": {
+            "get": {
+                "tags": [
+                    "Gallery"
+                ],
+                "summary": "Galerie partagée (photos visibles, paginées)",
+                "operationId": "4d49488624634921be8e695b3ea0266c",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Photos visibles, de la plus récente à la plus ancienne"
+                    },
+                    "401": {
+                        "description": "Non authentifié"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Gallery"
+                ],
+                "summary": "Uploader une photo",
+                "operationId": "6c5182fc4a1a179db12cecc9458937de",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "photo"
+                                ],
+                                "properties": {
+                                    "photo": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "caption": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Photo publiée",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GalleryPhoto"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Fichier invalide ou quota atteint"
+                    },
+                    "429": {
+                        "description": "Trop d'uploads, réessayez dans quelques minutes"
+                    }
+                }
+            }
+        },
+        "/api/gallery/photos/{photo}": {
+            "delete": {
+                "tags": [
+                    "Gallery"
+                ],
+                "summary": "Supprimer une de ses propres photos",
+                "operationId": "0ed499de8f3f566eb65c78e6d745c162",
+                "parameters": [
+                    {
+                        "name": "photo",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Photo supprimée"
+                    },
+                    "403": {
+                        "description": "Photo d'un autre invité"
+                    },
+                    "404": {
+                        "description": "Photo introuvable"
+                    }
+                }
+            }
+        },
+        "/api/gallery/photos/{photo}/{variant}": {
+            "get": {
+                "tags": [
+                    "Gallery"
+                ],
+                "summary": "Fichier image (URL signée temporaire, pas d'auth)",
+                "operationId": "1e3298bbc65359c425f85d84f42759b5",
+                "parameters": [
+                    {
+                        "name": "photo",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "variant",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "thumb",
+                                "full"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Contenu de l'image"
+                    },
+                    "403": {
+                        "description": "Signature invalide ou expirée"
+                    },
+                    "404": {
+                        "description": "Photo introuvable"
                     }
                 }
             }
@@ -2315,6 +2963,139 @@
                 },
                 "type": "object"
             },
+            "GalleryGuest": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 3
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Camille"
+                    },
+                    "banned": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "photos_count": {
+                        "type": "integer",
+                        "example": 12,
+                        "nullable": true
+                    },
+                    "last_seen_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "GalleryPhoto": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "guest_id": {
+                        "type": "integer",
+                        "example": 3
+                    },
+                    "guest_name": {
+                        "type": "string",
+                        "example": "Camille"
+                    },
+                    "caption": {
+                        "type": "string",
+                        "example": "Ouverture du bal !",
+                        "nullable": true
+                    },
+                    "width": {
+                        "type": "integer",
+                        "example": 2560
+                    },
+                    "height": {
+                        "type": "integer",
+                        "example": 1707
+                    },
+                    "hidden": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "thumb_url": {
+                        "description": "URL signée temporaire de la miniature",
+                        "type": "string"
+                    },
+                    "full_url": {
+                        "description": "URL signée temporaire de la version web",
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "GallerySettings": {
+                "properties": {
+                    "invite_token": {
+                        "description": "Token à encoder dans le QR code (admin uniquement)",
+                        "type": "string"
+                    },
+                    "registrations_open": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "registration_closes_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "max_guests": {
+                        "type": "integer",
+                        "example": 200
+                    },
+                    "max_photos_per_guest": {
+                        "type": "integer",
+                        "example": 100
+                    },
+                    "guests_count": {
+                        "type": "integer",
+                        "example": 42
+                    },
+                    "photos_count": {
+                        "type": "integer",
+                        "example": 318
+                    }
+                },
+                "type": "object"
+            },
+            "GallerySettingsInput": {
+                "properties": {
+                    "registrations_open": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "registration_closes_at": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true
+                    },
+                    "max_guests": {
+                        "type": "integer",
+                        "example": 200
+                    },
+                    "max_photos_per_guest": {
+                        "type": "integer",
+                        "example": 100
+                    }
+                },
+                "type": "object"
+            },
             "Guest": {
                 "properties": {
                     "id": {
@@ -2338,6 +3119,19 @@
                     "confirmed": {
                         "type": "boolean",
                         "example": true,
+                        "nullable": true
+                    },
+                    "attendance": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "ceremony",
+                                "cocktail",
+                                "dinner",
+                                "brunch"
+                            ]
+                        },
                         "nullable": true
                     },
                     "seating_table_id": {
@@ -2373,6 +3167,19 @@
                     },
                     "confirmed": {
                         "type": "boolean",
+                        "nullable": true
+                    },
+                    "attendance": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "ceremony",
+                                "cocktail",
+                                "dinner",
+                                "brunch"
+                            ]
+                        },
                         "nullable": true
                     },
                     "seating_table_id": {
@@ -2912,6 +3719,14 @@
         {
             "name": "Florists",
             "description": "Florists"
+        },
+        {
+            "name": "GalleryAdmin",
+            "description": "GalleryAdmin"
+        },
+        {
+            "name": "Gallery",
+            "description": "Gallery"
         },
         {
             "name": "Guests",

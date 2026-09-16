@@ -10,6 +10,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (DB::connection()->getDriverName() === 'sqlite') {
+            return;
+        }
+
         DB::statement('ALTER TABLE caterers DROP CONSTRAINT caterers_service_type_check');
         DB::statement("ALTER TABLE caterers ADD CONSTRAINT caterers_service_type_check CHECK (service_type IN ('cocktail', 'cocktail_dinatoire', 'seated', 'buffet', 'food_truck', 'brunch', 'live_cooking'))");
     }
@@ -19,6 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (DB::connection()->getDriverName() === 'sqlite') {
+            return;
+        }
+
         DB::statement('ALTER TABLE caterers DROP CONSTRAINT caterers_service_type_check');
         DB::statement("ALTER TABLE caterers ADD CONSTRAINT caterers_service_type_check CHECK (service_type IN ('buffet', 'seated', 'cocktail'))");
     }
