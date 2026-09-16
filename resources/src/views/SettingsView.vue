@@ -16,7 +16,7 @@
 
                 <div class="flex flex-col gap-1.5">
                     <label for="spouse_1_name" class="text-xs font-bold uppercase tracking-wider text-muted-color">Premier·ère marié·e</label>
-                    <InputText id="spouse_1_name" v-model.trim="form.spouse_1_name" placeholder="Ex: TOTO1"
+                    <InputText id="spouse_1_name" v-model.trim="form.spouse_1_name" placeholder="Ex: MADAME"
                         class="w-full !rounded-xl" :class="{ 'p-invalid': submitted && !form.spouse_1_name }" />
                     <small class="text-red-500 font-medium text-xs" v-if="submitted && !form.spouse_1_name">Ce
                         champ est obligatoire.</small>
@@ -24,7 +24,7 @@
 
                 <div class="flex flex-col gap-1.5">
                     <label for="spouse_2_name" class="text-xs font-bold uppercase tracking-wider text-muted-color">Second·e marié·e</label>
-                    <InputText id="spouse_2_name" v-model.trim="form.spouse_2_name" placeholder="Ex: TOTO2"
+                    <InputText id="spouse_2_name" v-model.trim="form.spouse_2_name" placeholder="Ex: MONSIEUR"
                         class="w-full !rounded-xl" :class="{ 'p-invalid': submitted && !form.spouse_2_name }" />
                     <small class="text-red-500 font-medium text-xs" v-if="submitted && !form.spouse_2_name">Ce
                         champ est obligatoire.</small>

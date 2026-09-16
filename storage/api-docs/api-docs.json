@@ -2853,11 +2853,11 @@
                     },
                     "spouse_1_name": {
                         "type": "string",
-                        "example": "TOTO1"
+                        "example": "MADAME"
                     },
                     "spouse_2_name": {
                         "type": "string",
-                        "example": "TOTO2"
+                        "example": "MONSIEUR"
                     },
                     "date": {
                         "type": "string",
@@ -2876,11 +2876,11 @@
                 "properties": {
                     "spouse_1_name": {
                         "type": "string",
-                        "example": "TOTO1"
+                        "example": "MADAME"
                     },
                     "spouse_2_name": {
                         "type": "string",
-                        "example": "TOTO2"
+                        "example": "MONSIEUR"
                     },
                     "date": {
                         "type": "string",
