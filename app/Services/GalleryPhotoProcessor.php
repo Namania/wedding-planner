@@ -5,6 +5,7 @@ namespace App\Services;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use RuntimeException;
 use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 use Intervention\Image\Encoders\JpegEncoder;
 use Intervention\Image\ImageManager;
@@ -43,8 +44,13 @@ class GalleryPhotoProcessor
             $path = "{$directory}/{$name}.jpg";
             $thumbPath = "{$directory}/{$name}_thumb.jpg";
 
-            $disk->put($path, $full);
-            $disk->put($thumbPath, $thumb);
+            if (! $disk->put($path, $full) || ! $disk->put($thumbPath, $thumb)) {
+                $disk->delete([$path, $thumbPath]);
+
+                throw new RuntimeException(
+                    "Écriture impossible sur le disque gallery (".config('gallery.disk')."), chemin {$path} — vérifier les identifiants et droits du stockage."
+                );
+            }
 
             return [
                 'path' => $path,

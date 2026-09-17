@@ -5,7 +5,7 @@ db_engine = "sqlite"
 replication_factor = 1
 
 rpc_bind_addr = "[::]:3901"
-rpc_public_addr = "garage:3901"
+rpc_public_addr = "127.0.0.1:3901"
 rpc_secret = "10d218c41fd9880521ce71473105fa9703e78f272169abd7067af0cb11cf0cfd"
 
 [s3_api]
