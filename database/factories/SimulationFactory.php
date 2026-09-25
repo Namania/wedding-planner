@@ -15,7 +15,7 @@ class SimulationFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => 'Simulation ' . fake()->unique()->word(),
+            'name' => 'Simulation '.fake()->unique()->word(),
             'is_active' => false,
             'venue_id' => null,
             'caterer_id' => null,

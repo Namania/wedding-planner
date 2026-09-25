@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Services\TwoFactorAuthenticator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Testing\TestResponse;
 use OTPHP\TOTP;
 use Tests\TestCase;
 
@@ -37,7 +38,7 @@ class TwoFactorAuthTest extends TestCase
         return TOTP::createFromSecret($secret)->now();
     }
 
-    private function login(array $overrides = []): \Illuminate\Testing\TestResponse
+    private function login(array $overrides = []): TestResponse
     {
         return $this->postJson('/api/login', array_merge([
             'email' => 'admin@exemple.com',

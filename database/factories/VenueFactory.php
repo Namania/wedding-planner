@@ -15,12 +15,12 @@ class VenueFactory extends Factory
     public function definition(): array
     {
         $name = fake()->randomElement(['Château', 'Domaine', 'Manoir', 'Ferme', 'Orangerie'])
-            . ' ' . fake()->lastName();
+            .' '.fake()->lastName();
 
         return [
             'name' => $name,
             'website' => fake()->optional(0.7)->url(),
-            'maps_url' => 'https://maps.google.com/?q=' . str_replace(' ', '+', $name),
+            'maps_url' => 'https://maps.google.com/?q='.str_replace(' ', '+', $name),
             'price' => fake()->numberBetween(1500, 15000),
             'note' => fake()->optional(0.5)->sentence(15),
             'quote_status' => fake()->optional(0.6)->randomElement(Venue::QUOTE_STATUSES),
