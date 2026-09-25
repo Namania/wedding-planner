@@ -2,7 +2,7 @@ services:
   wedding-planner:
     image: ${APP_IMAGE}
     restart: unless-stopped
-
+    pull_policy: always
     environment:
       APP_NAME: ${APP_NAME}
       APP_ENV: production
