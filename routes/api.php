@@ -26,7 +26,15 @@ Route::get('/', function () {
     ]);
 });
 
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])
+    ->middleware('throttle:admin-login');
+
+// Deuxième étape de la connexion admin (TOTP obligatoire). Publiques, car
+// aucune session n'est ouverte tant que le code n'est pas validé.
+Route::post('/two-factor-setup', [AuthController::class, 'twoFactorSetup'])
+    ->middleware('throttle:admin-2fa');
+Route::post('/two-factor-challenge', [AuthController::class, 'twoFactorChallenge'])
+    ->middleware('throttle:admin-2fa');
 
 Route::get('gallery/photos/{photo}/{variant}', [GalleryPhotoController::class, 'file'])
     ->middleware(['signed', 'throttle:gallery-files'])

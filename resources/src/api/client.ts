@@ -14,7 +14,8 @@ const apiClient = axios.create({
 apiClient.interceptors.response.use(
     (response) => response,
     (error) => {
-        const isAuthRequest = error.config?.url === '/login' || error.config?.url === '/logout'
+        const authRoutes = ['/login', '/logout', '/two-factor-setup', '/two-factor-challenge']
+        const isAuthRequest = authRoutes.includes(error.config?.url ?? '')
         if (error.response && error.response.status === 401 && !isAuthRequest) {
             const authStore = useAuthStore()
             authStore.clearSession()
