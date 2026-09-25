@@ -1,5 +1,5 @@
 services:
-  app:
+  wedding-planner:
     image: ${APP_IMAGE}
     restart: unless-stopped
 
