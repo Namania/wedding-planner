@@ -15,7 +15,7 @@ class SeatingTableFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => 'Table ' . fake()->unique()->numberBetween(1, 30),
+            'name' => 'Table '.fake()->unique()->numberBetween(1, 30),
             'capacity' => fake()->numberBetween(6, 10),
         ];
     }

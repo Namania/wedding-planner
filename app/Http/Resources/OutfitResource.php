@@ -39,7 +39,7 @@ class OutfitResource extends JsonResource
             'spouse' => $this->spouse,
             'phone' => $this->phone,
             'website' => $this->website,
-            'image_url' => $this->image_path ? $request->getSchemeAndHttpHost() . '/storage/' . $this->image_path : null,
+            'image_url' => $this->image_path ? $request->getSchemeAndHttpHost().'/storage/'.$this->image_path : null,
             'note' => $this->note,
             'quote_status' => $this->quote_status,
             'created_at' => $this->created_at->toIso8601String(),
