@@ -2,10 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Http\Middleware\RotateRememberToken;
 use App\Models\User;
 use Illuminate\Auth\SessionGuard;
+use Illuminate\Contracts\Auth\StatefulGuard;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Mockery;
 use Tests\TestCase;
 
 class RememberSessionTest extends TestCase
@@ -84,5 +88,53 @@ class RememberSessionTest extends TestCase
         $this->withCredentials()->withCookie($name, $recaller)
             ->getJson('/api/user')
             ->assertUnauthorized();
+    }
+
+    public function test_a_losing_concurrent_request_does_not_reissue_a_cookie_nor_overwrite_the_winners_token(): void
+    {
+        // Une vraie course entre requêtes simultanées n'est pas reproductible
+        // avec ce client de test synchrone : les requêtes s'exécutent l'une
+        // après l'autre, jamais en parallèle. On reconstitue donc directement
+        // la situation qu'une course produirait plutôt que la course elle-même.
+        $this->user->forceFill(['remember_token' => 'jeton-perdant'])->save();
+
+        // Instantané en mémoire de l'utilisateur tel que NOTRE requête l'aurait
+        // résolu via le cookie remember, avant que la requête concurrente ne
+        // gagne la course : son jeton en mémoire est encore l'ancien.
+        $staleUser = $this->user->fresh();
+
+        // La requête concurrente « gagne » : elle tourne le jeton en base
+        // avant que notre middleware n'exécute son propre UPDATE conditionnel.
+        $this->user->forceFill(['remember_token' => 'jeton-gagnant'])->save();
+
+        // On appelle le middleware directement, en substituant à la garde
+        // 'web' un mock qui rejoue exactement ce que verrait notre requête :
+        // viaRemember() vrai, et un utilisateur dont le jeton en mémoire ne
+        // correspond plus à celui de la base. shouldNotReceive('login') est
+        // l'assertion centrale : c'est là, et seulement là, qu'un cookie
+        // remember serait mis en file pour la réponse ; si la branche
+        // perdante appelait login(), ce test échouerait sur ce point avant
+        // même d'atteindre les asserts ci-dessous.
+        $guard = Mockery::mock(StatefulGuard::class);
+        $guard->shouldReceive('viaRemember')->once()->andReturn(true);
+        $guard->shouldReceive('user')->once()->andReturn($staleUser);
+        $guard->shouldNotReceive('login');
+
+        Auth::shouldReceive('guard')->with('web')->andReturn($guard);
+
+        $response = (new RotateRememberToken)->handle(
+            Request::create('/api/user', 'GET'),
+            fn ($request) => response('ok'),
+        );
+
+        $this->assertSame('ok', $response->getContent());
+
+        // La valeur en base reste celle de la gagnante : la branche perdante
+        // n'a rien réécrit.
+        $this->assertSame(
+            'jeton-gagnant',
+            $this->user->fresh()->getRememberToken(),
+            'Le jeton de la requête gagnante ne doit pas être écrasé par la perdante.',
+        );
     }
 }
