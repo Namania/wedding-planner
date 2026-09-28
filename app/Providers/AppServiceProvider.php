@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
@@ -23,6 +24,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Sans cela le cookie « remember me » durerait le défaut de Laravel,
+        // soit environ quatre cents jours.
+        Auth::guard('web')->setRememberDuration(config('auth.remember_lifetime'));
+
         JsonResource::withoutWrapping();
 
         $this->configureAdminRateLimiting();

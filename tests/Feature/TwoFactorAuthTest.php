@@ -38,6 +38,11 @@ class TwoFactorAuthTest extends TestCase
         return TOTP::createFromSecret($secret)->now();
     }
 
+    private function totp(): TwoFactorAuthenticator
+    {
+        return app(TwoFactorAuthenticator::class);
+    }
+
     private function login(array $overrides = []): TestResponse
     {
         return $this->postJson('/api/login', array_merge([
@@ -189,6 +194,37 @@ class TwoFactorAuthTest extends TestCase
             ->assertJsonValidationErrors('challenge_token');
 
         $this->assertGuest();
+    }
+
+    public function test_login_issues_a_remember_cookie_lasting_one_week(): void
+    {
+        $secret = $this->totp()->generateSecret();
+        $this->user->forceFill([
+            'two_factor_secret' => $secret,
+            'two_factor_confirmed_at' => now(),
+        ])->save();
+
+        $token = $this->login()->json('challenge_token');
+
+        $response = $this->postJson('/api/two-factor-challenge', [
+            'challenge_token' => $token,
+            'code' => $this->codeFor($secret),
+        ]);
+
+        $response->assertOk();
+
+        $recaller = collect($response->headers->getCookies())
+            ->first(fn ($cookie) => str_starts_with($cookie->getName(), 'remember_web_'));
+
+        $this->assertNotNull($recaller, 'Aucun cookie « remember me » posé à la connexion.');
+
+        // 10080 minutes = sept jours. On tolère une minute de dérive entre le
+        // calcul du test et celui du framework.
+        $this->assertEqualsWithDelta(
+            now()->addMinutes(10080)->timestamp,
+            $recaller->getExpiresTime(),
+            60,
+        );
     }
 
     // --- Fuite du secret -----------------------------------------------------

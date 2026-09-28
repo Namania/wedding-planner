@@ -125,7 +125,9 @@ class AuthController extends Controller
 
     private function completeLogin(Request $request, User $user)
     {
-        Auth::guard('web')->login($user);
+        // remember: true est ce qui permet à la session de cinq minutes de se
+        // rouvrir seule pendant une semaine.
+        Auth::guard('web')->login($user, remember: true);
 
         $request->session()->regenerate();
 

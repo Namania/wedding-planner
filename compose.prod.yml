@@ -18,7 +18,10 @@ x-back-env: &back-env
   DB_PASSWORD: ${DB_PASSWORD}
 
   SESSION_DRIVER: database
-  SESSION_LIFETIME: "120"
+  # Volontairement court : c'est le cookie « remember me » (AUTH_REMEMBER_LIFETIME)
+  # qui porte la durée réellement vécue, et son jeton tourne à chaque
+  # réutilisation. Voir app/Http/Middleware/RotateRememberToken.php.
+  SESSION_LIFETIME: "5"
   SESSION_ENCRYPT: "false"
   SESSION_PATH: /
   SESSION_DOMAIN: ${APP_DOMAIN}

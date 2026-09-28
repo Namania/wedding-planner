@@ -75,6 +75,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Durées de session longue
+    |--------------------------------------------------------------------------
+    |
+    | La session elle-même est volontairement courte (SESSION_LIFETIME) ; c'est
+    | le cookie « remember me » qui porte la durée réellement vécue par
+    | l'utilisateur. La seconde valeur est la durée pendant laquelle un appareil
+    | marqué de confiance dispense du second facteur.
+    |
+    */
+
+    'remember_lifetime' => (int) env('AUTH_REMEMBER_LIFETIME', 10080),
+
+    'trusted_device_days' => (int) env('AUTH_TRUSTED_DEVICE_DAYS', 30),
+
+    /*
+    |--------------------------------------------------------------------------
     | Resetting Passwords
     |--------------------------------------------------------------------------
     |
