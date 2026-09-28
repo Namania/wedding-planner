@@ -19,3 +19,6 @@ vendor
 compose*.yml
 
 *.md
+
+bootstrap/cache/*.php
+database/*.sqlite*

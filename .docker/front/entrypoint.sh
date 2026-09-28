@@ -1,12 +1,13 @@
 #!/bin/sh
-# Remplace dans les fichiers du build Vite les jetons posés par
-# resources/.env.production par les vraies valeurs, lues depuis les
-# variables d'environnement du conteneur au démarrage. Vite inline ces
-# valeurs dans le JS au build ; comme il n'y a pas de "runtime" pour du JS
-# statique, on fait cette substitution texte une fois, à chaque démarrage.
+# Remplace, dans les fichiers déjà compilés, les jetons posés par
+# resources/.env.production par les vraies valeurs lues dans l'environnement
+# du conteneur. Vite inline ces valeurs au build : comme il n'y a pas de
+# "runtime" pour du JS statique, on fait cette substitution texte au démarrage.
+# C'est ce qui permet de déployer la même image dans n'importe quel
+# environnement.
 set -e
 
-BUILD_DIR="${BUILD_DIR:-public/build}"
+BUILD_DIR="${BUILD_DIR:-/usr/share/nginx/html}"
 
 replace() {
     token="$1"
@@ -23,3 +24,5 @@ replace '__RUNTIME_VITE_REVERB_APP_KEY__' "${VITE_REVERB_APP_KEY:-}"
 replace '__RUNTIME_VITE_REVERB_HOST__' "${VITE_REVERB_HOST:-}"
 replace '__RUNTIME_VITE_REVERB_PORT__' "${VITE_REVERB_PORT:-443}"
 replace '__RUNTIME_VITE_REVERB_SCHEME__' "${VITE_REVERB_SCHEME:-https}"
+
+exec "$@"

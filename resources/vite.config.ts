@@ -7,12 +7,14 @@ import tailwindcss from '@tailwindcss/vite'
 import Components from 'unplugin-vue-components/vite'
 import { PrimeVueResolver } from 'unplugin-vue-components/resolvers'
 
-export default defineConfig(({ mode, command }) => {
+export default defineConfig(({ mode }) => {
 
   const env = loadEnv(mode, process.cwd(), '');
 
   return {
-    base: command === 'build' ? '/build/' : '/',
+    // Servi à la racine par nginx (image .docker/front). Le préfixe '/build/'
+    // n'avait de sens que lorsque Laravel servait le SPA depuis public/build.
+    base: '/',
     plugins: [
       vue(),
       vueDevTools(),
@@ -29,8 +31,7 @@ export default defineConfig(({ mode, command }) => {
       },
     },
     build: {
-      // Emit into the Laravel public dir so the backend can serve the
-      // built SPA directly, no separate frontend container in production.
+      // Récupéré tel quel par l'image front, qui copie ce dossier dans nginx.
       outDir: '../public/build',
     },
     server: {
