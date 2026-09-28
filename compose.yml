@@ -9,7 +9,7 @@ services:
       - ./:/var/www
       - vendor_data:/var/www/vendor
     ports:
-      - "8000:8000"
+      - "${APP_PORT:-8000}:8000"
     command: php artisan serve --host=0.0.0.0 --port=8000
     depends_on:
       - db
@@ -52,7 +52,7 @@ services:
       GARAGE_KEY_ID: ${AWS_ACCESS_KEY_ID}
       GARAGE_SECRET_KEY: ${AWS_SECRET_ACCESS_KEY}
     ports:
-      - "3900:3900"
+      - "${GARAGE_PORT:-3900}:3900"
     volumes:
       - garage_meta_data:/var/lib/garage/meta
       - garage_data:/var/lib/garage/data
