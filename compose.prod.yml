@@ -51,6 +51,9 @@ x-back-env: &back-env
 services:
   wedding-front:
     image: ${FRONT_IMAGE}
+    # Les tags sont mouvants (:latest) : sans ça, une image déjà présente en
+    # local n'est jamais retéléchargée et le déploiement réutilise l'ancienne.
+    pull_policy: always
     restart: unless-stopped
     environment:
       VITE_APP_NAME: ${APP_NAME}
@@ -73,6 +76,7 @@ services:
 
   wedding-back:
     image: ${BACK_IMAGE}
+    pull_policy: always
     restart: unless-stopped
     environment: *back-env
     expose:
@@ -88,6 +92,7 @@ services:
 
   wedding-reverb:
     image: ${BACK_IMAGE}
+    pull_policy: always
     restart: unless-stopped
     environment:
       <<: *back-env
