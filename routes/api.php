@@ -57,7 +57,11 @@ Route::middleware(['auth:sanctum', 'gallery.guest'])->prefix('gallery')->group(f
     Route::delete('photos/{photo}', [GalleryPhotoController::class, 'destroy']);
 });
 
-Route::middleware(['auth:sanctum', 'admin.user'])->group(function () {
+// remember.rotate se place après auth:sanctum : il a besoin que la garde ait
+// déjà résolu l'utilisateur pour savoir si le cookie remember a servi. Il ne
+// suppose rien du type de compte et suivra les routes invités le jour où
+// elles utiliseront la garde de session.
+Route::middleware(['auth:sanctum', 'admin.user', 'remember.rotate'])->group(function () {
     Route::get('/user', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
