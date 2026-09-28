@@ -20,7 +20,10 @@ RUN npm run build
 
 FROM nginx:1.27-alpine
 
+# proxy.conf est hors de conf.d/ : nginx y inclut automatiquement tout *.conf,
+# ce qui chargerait ses directives une seconde fois au niveau http.
 COPY .docker/front/nginx.conf /etc/nginx/conf.d/default.conf
+COPY .docker/front/proxy.conf /etc/nginx/proxy.conf
 COPY --from=build /public/build /usr/share/nginx/html
 COPY .docker/front/entrypoint.sh /usr/local/bin/entrypoint.sh
 
