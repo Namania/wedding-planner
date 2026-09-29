@@ -74,6 +74,12 @@ class GalleryAuthController extends Controller
         // l'index unique de la table à l'insertion.
         $request->merge(['email' => User::normalizeEmail($request->input('email'))]);
 
+        // Avant la validation, et pas après : la règle `unique:users,email`
+        // renvoie 422 si l'adresse existe déjà et 404 sinon (jeton invalide).
+        // Avec un faux jeton, ce seul code de retour trahirait l'existence
+        // d'un compte sur une adresse — sans même connaître le bon jeton.
+        $settings = $this->settingsForValidToken((string) $request->input('token'));
+
         $data = $request->validate([
             'token' => ['required', 'string'],
             'name' => ['required', 'string', 'min:2', 'max:40'],
@@ -84,8 +90,6 @@ class GalleryAuthController extends Controller
             // qui révélerait que l'adresse des mariés est celle d'un compte.
             'email.unique' => 'Cette adresse ne peut pas être utilisée. Essayez-en une autre.',
         ]);
-
-        $settings = $this->settingsForValidToken($data['token']);
 
         if (! $settings->registrationsAllowed()) {
             throw ValidationException::withMessages([

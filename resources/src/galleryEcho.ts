@@ -20,9 +20,15 @@ let instance: Echo<'reverb'> | null = null
  * (voir `validateCsrfTokens(except:)` dans bootstrap/app.php), cette route ne
  * peut donc pas répondre 419.
  *
- * Le mode de panne réel de la réautorisation après le réveil du téléphone est
- * un 403 — la session de cinq minutes a expiré — et il n'est pas traité ici :
- * les photos cessent d'arriver en direct jusqu'au rechargement de la page.
+ * La route reste sous le groupe de middlewares `web` : `SessionGuard` y
+ * rejoue le cookie de reconnexion comme sur n'importe quelle autre route de
+ * ce groupe. Un téléphone qui se réveille après cinq minutes sans requête a
+ * bien vu sa session expirer, mais tant que ce cookie reste valide il
+ * réauthentifie seul, silencieusement, et la requête répond 200 : le 403
+ * n'arrive que si le cookie de reconnexion lui-même a expiré ou a été tourné
+ * (rotation, déconnexion), pas à la simple expiration de la session de cinq
+ * minutes. Ce cas n'est pas traité ici : les photos cessent alors d'arriver
+ * en direct jusqu'au rechargement de la page.
  */
 function authorizeChannel(channelName: string, socketId: string): Promise<AxiosResponse> {
     return axios.post(

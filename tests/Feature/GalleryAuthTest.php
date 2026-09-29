@@ -89,6 +89,23 @@ class GalleryAuthTest extends TestCase
         $this->register(['token' => str_repeat('b', 64)])->assertNotFound();
     }
 
+    /**
+     * Le jeton doit être vérifié avant la règle `unique:users,email` : sinon
+     * un jeton faux renvoie 422 quand l'adresse existe déjà et 404 quand elle
+     * est libre, et ce seul code de retour révèle l'existence d'un compte sur
+     * cette adresse à quiconque n'a même pas le bon jeton.
+     */
+    public function test_registration_with_invalid_token_returns_not_found_whether_or_not_the_email_is_taken(): void
+    {
+        User::factory()->create(['email' => 'maries@exemple.com']);
+
+        $this->register(['token' => str_repeat('b', 64), 'email' => 'maries@exemple.com'])
+            ->assertNotFound();
+
+        $this->register(['token' => str_repeat('b', 64), 'email' => 'libre@exemple.com'])
+            ->assertNotFound();
+    }
+
     public function test_registration_rejected_when_closed(): void
     {
         GallerySettings::current()->update(['registrations_open' => false]);
