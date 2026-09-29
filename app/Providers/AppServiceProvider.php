@@ -55,11 +55,26 @@ class AppServiceProvider extends ServiceProvider
     {
         RateLimiter::for('gallery-invite', fn (Request $request) => Limit::perMinute(20)->by('gi|'.$request->ip()));
 
-        RateLimiter::for('gallery-register', fn (Request $request) => Limit::perHour(10)->by('gr|'.$request->ip()));
+        // Cent par heure et par IP, et non dix : le soir du mariage, les cent
+        // invités scannent le QR code depuis le même Wi-Fi, donc derrière une
+        // seule IP publique (trustProxies la résout correctement). Un plafond
+        // bas y bloquerait des invités légitimes sans recours, faute de route
+        // permettant aux mariés de créer un compte à leur place.
+        //
+        // Ce n'est donc pas ici que se limite le nombre de comptes : ce
+        // garde-fou est GallerySettings::registrationsAllowed(), qui refuse
+        // l'inscription au-delà de max_guests. Ce seau ne sert plus qu'à
+        // freiner un script qui créerait des comptes en boucle.
+        RateLimiter::for('gallery-register', fn (Request $request) => Limit::perHour(100)->by('gr|'.$request->ip()));
 
+        // Le second seau porte sur l'adresse tentée, pas sur l'IP : c'est ce
+        // qui empêche de bombarder un compte précis depuis plusieurs réseaux.
+        // Il doit impérativement être indexé sur un champ réellement envoyé —
+        // une clé vide serait la même pour tout le monde, et transformerait ce
+        // seau en plafond global pour l'application entière.
         RateLimiter::for('gallery-login', fn (Request $request) => [
             Limit::perMinute(5)->by('gl|'.$request->ip()),
-            Limit::perMinute(10)->by('gln|'.mb_strtolower((string) $request->input('name'))),
+            Limit::perMinute(10)->by('gle|'.mb_strtolower((string) $request->input('email'))),
         ]);
 
         RateLimiter::for('gallery-upload', fn (Request $request) => Limit::perMinutes(10, 30)->by('gu|'.($request->user()?->getKey() ?? $request->ip())));
