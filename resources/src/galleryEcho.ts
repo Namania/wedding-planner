@@ -1,7 +1,6 @@
 import Echo from 'laravel-echo'
 import Pusher, { type ChannelAuthorizationCallback } from 'pusher-js'
 import axios from 'axios'
-import { getGalleryToken } from '@/api/galleryClient'
 
 declare global {
     interface Window {
@@ -26,13 +25,15 @@ export function getGalleryEcho(): Echo<'reverb'> {
         wssPort: Number(import.meta.env.VITE_REVERB_PORT ?? 443),
         forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'http') === 'https',
         enabledTransports: ['ws', 'wss'],
+        // Authorizer maison : le connecteur Pusher par défaut ne sait pas envoyer
+        // les cookies de session cross-origin (front sur :5172, API sur :8000).
         authorizer: (channel: { name: string }) => ({
             authorize(socketId: string, callback: ChannelAuthorizationCallback) {
                 axios
                     .post(
                         `${appUrl}/broadcasting/auth`,
                         { socket_id: socketId, channel_name: channel.name },
-                        { headers: { Authorization: `Bearer ${getGalleryToken()}` } }
+                        { withCredentials: true, withXSRFToken: true }
                     )
                     .then((response) => callback(null, response.data))
                     .catch((error) => callback(error, null))
