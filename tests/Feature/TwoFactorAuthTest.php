@@ -60,6 +60,27 @@ class TwoFactorAuthTest extends TestCase
             ->assertJsonValidationErrors('email');
     }
 
+    /**
+     * Depuis que les invités de la galerie sont eux aussi des User,
+     * `/api/login` doit refuser leur rôle : sans cette garde, l'un d'eux
+     * obtiendrait une session complète sans second facteur, puisque
+     * `requiresTwoFactor()` renvoie faux pour un invité.
+     */
+    public function test_login_rejects_a_guest_account(): void
+    {
+        User::factory()->guest()->create([
+            'email' => 'invite@exemple.com',
+            'password' => 'password',
+        ]);
+
+        $this->postJson('/api/login', [
+            'email' => 'invite@exemple.com',
+            'password' => 'password',
+        ])->assertStatus(422)->assertJsonValidationErrors('email');
+
+        $this->assertGuest();
+    }
+
     public function test_login_never_opens_a_session_without_the_second_factor(): void
     {
         $this->login()->assertOk();

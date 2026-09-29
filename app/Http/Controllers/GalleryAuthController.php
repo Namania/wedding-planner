@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\GalleryGuestResource;
-use App\Models\GalleryGuest;
+use App\Http\Resources\GuestResource;
 use App\Models\GallerySettings;
+use App\Models\User;
 use App\Models\Wedding;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use OpenApi\Attributes as OA;
@@ -49,16 +50,17 @@ class GalleryAuthController extends Controller
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ['token', 'name', 'pin'],
+                required: ['token', 'name', 'email', 'password'],
                 properties: [
                     new OA\Property(property: 'token', type: 'string'),
                     new OA\Property(property: 'name', type: 'string', example: 'Camille'),
-                    new OA\Property(property: 'pin', type: 'string', example: '4821'),
+                    new OA\Property(property: 'email', type: 'string', format: 'email', example: 'camille@exemple.com'),
+                    new OA\Property(property: 'password', type: 'string', format: 'password'),
                 ]
             )
         ),
         responses: [
-            new OA\Response(response: 201, description: 'Compte créé, token de session retourné'),
+            new OA\Response(response: 201, description: 'Compte créé, session ouverte'),
             new OA\Response(response: 404, description: "Token d'invitation invalide"),
             new OA\Response(response: 422, description: 'Erreur de validation ou inscriptions fermées'),
             new OA\Response(response: 429, description: 'Trop de tentatives'),
@@ -69,7 +71,12 @@ class GalleryAuthController extends Controller
         $data = $request->validate([
             'token' => ['required', 'string'],
             'name' => ['required', 'string', 'min:2', 'max:40'],
-            'pin' => ['required', 'digits_between:4,6'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:8'],
+        ], [
+            // Le message par défaut dirait « cet email est déjà utilisé », ce
+            // qui révélerait que l'adresse des mariés est celle d'un compte.
+            'email.unique' => 'Cette adresse ne peut pas être utilisée. Essayez-en une autre.',
         ]);
 
         $settings = $this->settingsForValidToken($data['token']);
@@ -80,44 +87,34 @@ class GalleryAuthController extends Controller
             ]);
         }
 
-        $normalized = GalleryGuest::normalizeName($data['name']);
-
-        if (GalleryGuest::where('name_normalized', $normalized)->exists()) {
-            throw ValidationException::withMessages([
-                'name' => ['Ce prénom est déjà pris — ajoutez une initiale ou un surnom.'],
-            ]);
-        }
-
-        $guest = GalleryGuest::create([
+        $guest = User::create([
             'name' => trim($data['name']),
-            'name_normalized' => $normalized,
-            'pin_hash' => Hash::make($data['pin']),
-            'created_ip' => $request->ip(),
-            'last_seen_at' => now(),
+            'email' => $data['email'],
+            'password' => $data['password'],
+            'role' => User::ROLE_GUEST,
         ]);
 
-        return response()->json([
-            'token' => $guest->createToken('gallery')->plainTextToken,
-            'guest' => new GalleryGuestResource($guest),
-        ], 201);
+        $guest->forceFill(['last_seen_at' => now()])->save();
+
+        return $this->openSession($request, $guest, 201);
     }
 
     #[OA\Post(
         path: '/api/gallery/login',
-        summary: 'Reconnexion d\'un invité (prénom + PIN)',
+        summary: "Reconnexion d'un invité (email + mot de passe)",
         tags: ['Gallery'],
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ['name', 'pin'],
+                required: ['email', 'password'],
                 properties: [
-                    new OA\Property(property: 'name', type: 'string', example: 'Camille'),
-                    new OA\Property(property: 'pin', type: 'string', example: '4821'),
+                    new OA\Property(property: 'email', type: 'string', format: 'email', example: 'camille@exemple.com'),
+                    new OA\Property(property: 'password', type: 'string', format: 'password'),
                 ]
             )
         ),
         responses: [
-            new OA\Response(response: 200, description: 'Connecté, token de session retourné'),
+            new OA\Response(response: 200, description: 'Connecté, session ouverte'),
             new OA\Response(response: 422, description: 'Identifiants incorrects'),
             new OA\Response(response: 429, description: 'Trop de tentatives'),
         ]
@@ -125,24 +122,25 @@ class GalleryAuthController extends Controller
     public function login(Request $request)
     {
         $data = $request->validate([
-            'name' => ['required', 'string'],
-            'pin' => ['required', 'string'],
+            'email' => ['required', 'email'],
+            'password' => ['required', 'string'],
         ]);
 
-        $guest = GalleryGuest::where('name_normalized', GalleryGuest::normalizeName($data['name']))->first();
+        $guest = User::where('email', $data['email'])->first();
 
-        if ($guest === null || $guest->isBanned() || ! Hash::check($data['pin'], $guest->pin_hash)) {
+        // Un même message pour toutes les causes : compte inexistant, mot de
+        // passe faux, compte d'administration ou compte banni. Les distinguer
+        // dirait à un inconnu quelles adresses existent.
+        if ($guest === null || ! $guest->isGuest() || $guest->isBanned()
+            || ! Hash::check($data['password'], $guest->password)) {
             throw ValidationException::withMessages([
-                'name' => ['Prénom ou code PIN incorrect.'],
+                'email' => ['Adresse ou mot de passe incorrect.'],
             ]);
         }
 
-        $guest->forceFill(['last_seen_at' => now()])->saveQuietly();
+        $guest->forceFill(['last_seen_at' => now()])->save();
 
-        return response()->json([
-            'token' => $guest->createToken('gallery')->plainTextToken,
-            'guest' => new GalleryGuestResource($guest),
-        ]);
+        return $this->openSession($request, $guest);
     }
 
     #[OA\Get(
@@ -156,12 +154,12 @@ class GalleryAuthController extends Controller
     )]
     public function me(Request $request)
     {
-        return new GalleryGuestResource($request->user()->loadCount('photos'));
+        return new GuestResource($request->user()->loadCount('photos'));
     }
 
     #[OA\Post(
         path: '/api/gallery/logout',
-        summary: "Déconnexion de l'invité (révoque le token courant)",
+        summary: "Déconnexion de l'invité (ferme la session)",
         tags: ['Gallery'],
         responses: [
             new OA\Response(response: 200, description: 'Déconnecté'),
@@ -169,7 +167,10 @@ class GalleryAuthController extends Controller
     )]
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        Auth::guard('web')->logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return response()->json(['message' => 'Déconnexion réussie.']);
     }
@@ -181,5 +182,20 @@ class GalleryAuthController extends Controller
         abort_unless(hash_equals($settings->invite_token, $token), 404);
 
         return $settings;
+    }
+
+    /**
+     * remember: true est indispensable ici : la session dure cinq minutes, et
+     * un invité sur son téléphone pendant une soirée ne doit pas la vivre.
+     */
+    private function openSession(Request $request, User $guest, int $status = 200)
+    {
+        Auth::guard('web')->login($guest, remember: true);
+
+        $request->session()->regenerate();
+
+        return response()->json([
+            'guest' => new GuestResource($guest),
+        ], $status);
     }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\GalleryGuest;
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -13,7 +13,7 @@ class EnsureGalleryGuest
     {
         $guest = $request->user();
 
-        if (! $guest instanceof GalleryGuest) {
+        if (! $guest instanceof User || ! $guest->isGuest()) {
             abort(403, 'Réservé aux invités de la galerie.');
         }
 

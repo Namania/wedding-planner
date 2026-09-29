@@ -36,7 +36,7 @@ class GallerySettings extends Model
             return false;
         }
 
-        return GalleryGuest::count() < $this->max_guests;
+        return User::where('role', User::ROLE_GUEST)->count() < $this->max_guests;
     }
 
     public function rotateInviteToken(): void

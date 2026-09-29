@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreGuestRequest;
 use App\Http\Requests\UpdateGuestRequest;
-use App\Http\Resources\GuestResource;
+use App\Http\Resources\WeddingGuestResource;
 use App\Models\Guest;
 use OpenApi\Attributes as OA;
 
@@ -24,7 +24,7 @@ class GuestController extends Controller
     )]
     public function index()
     {
-        return GuestResource::collection(Guest::orderBy('name')->get());
+        return WeddingGuestResource::collection(Guest::orderBy('name')->get());
     }
 
     #[OA\Post(
@@ -48,7 +48,7 @@ class GuestController extends Controller
     {
         $guest = Guest::create($request->validated());
 
-        return new GuestResource($guest);
+        return new WeddingGuestResource($guest);
     }
 
     #[OA\Get(
@@ -69,7 +69,7 @@ class GuestController extends Controller
     )]
     public function show(Guest $guest)
     {
-        return new GuestResource($guest);
+        return new WeddingGuestResource($guest);
     }
 
     #[OA\Put(
@@ -97,7 +97,7 @@ class GuestController extends Controller
     {
         $guest->update($request->validated());
 
-        return new GuestResource($guest);
+        return new WeddingGuestResource($guest);
     }
 
     #[OA\Delete(
@@ -120,6 +120,6 @@ class GuestController extends Controller
     {
         $guest->delete();
 
-        return new GuestResource($guest);
+        return new WeddingGuestResource($guest);
     }
 }

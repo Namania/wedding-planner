@@ -54,6 +54,15 @@ class AuthController extends Controller
 
         $user = User::where('email', $credentials['email'])->firstOrFail();
 
+        // Un même message que pour un mot de passe faux : sans cela, la seule
+        // différence de réponse dirait à un invité — ou à qui a son mot de
+        // passe — que cette route mène à une session sans second facteur.
+        if ($user->isGuest()) {
+            throw ValidationException::withMessages([
+                'email' => ['Les identifiants sont incorrects.'],
+            ]);
+        }
+
         // Un appareil de confiance dispense du second facteur, jamais du mot de
         // passe : on n'arrive ici qu'une fois celui-ci vérifié. Un cookie forgé
         // ou illisible est écarté par EncryptCookies — mais seulement pour les
