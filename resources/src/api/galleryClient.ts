@@ -29,15 +29,30 @@ galleryClient.interceptors.response.use(
             try {
                 await galleryClient.get('../sanctum/csrf-cookie')
             } catch {
+                // Le rafraîchissement a échoué : on propage la 419 d'origine, plus
+                // parlante ici que l'erreur du rafraîchissement lui-même.
                 return Promise.reject(error)
             }
 
+            // Hors du try : une erreur du rejeu est une vraie erreur de la requête et
+            // doit remonter telle quelle, sinon un 422 de validation serait déguisé en
+            // « Page Expired ».
             return galleryClient(config)
         }
 
+        // `/gallery/me` sert justement à détecter l'absence de session : un 401
+        // y est une réponse normale, pas une session qui expire en cours de
+        // route. Idem pour `/gallery/logout`, qui peut très bien recevoir un
+        // 401 si la session était déjà fermée. Rediriger sur ces deux routes
+        // empêcherait par exemple ShareView d'afficher le formulaire
+        // d'inscription : le navigateur quitterait la page avant que son
+        // `catch` n'ait la main.
+        const authRoutes = ['/gallery/me', '/gallery/logout']
+        const isAuthRequest = authRoutes.includes(config?.url ?? '')
+
         const status = error.response?.status
 
-        if (status === 401 || (status === 403 && window.location.pathname.startsWith('/gallery'))) {
+        if (!isAuthRequest && (status === 401 || (status === 403 && window.location.pathname.startsWith('/gallery')))) {
             if (window.location.pathname !== '/gallery/login') {
                 window.location.href = '/gallery/login'
             }

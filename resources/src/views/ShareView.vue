@@ -45,9 +45,9 @@
                         <label for="name" class="text-xs font-bold uppercase tracking-wider text-muted-color">Votre
                             nom</label>
                         <InputText id="name" v-model.trim="name" placeholder="Ex: Camille" class="w-full !rounded-xl"
-                            :class="{ 'p-invalid': submitted && !name }" autofocus />
-                        <small class="text-red-500 font-medium text-xs" v-if="submitted && !name">Ce champ est
-                            obligatoire.</small>
+                            :class="{ 'p-invalid': submitted && !nameValid }" autofocus />
+                        <small class="text-red-500 font-medium text-xs" v-if="submitted && !nameValid">2 à 40
+                            caractères requis.</small>
                     </div>
 
                     <div class="flex flex-col gap-1.5">
@@ -114,13 +114,17 @@ const submitted = ref(false)
 const loading = ref(false)
 const errorMessage = ref('')
 
+// Alignée sur la validation du back (min:2, max:40).
+const nameValid = computed(() => name.value.length >= 2 && name.value.length <= 40)
 const passwordValid = computed(() => password.value.length >= 8)
 
 const inviteToken = computed(() => String(route.params.token ?? ''))
 
 onMounted(async () => {
     // Plus de jeton à consulter : c'est le serveur qui sait si une session est
-    // ouverte, via le cookie envoyé avec la requête.
+    // ouverte, via le cookie envoyé avec la requête. Un 401 ici est la réponse
+    // normale en l'absence de session — galleryClient ne redirige donc pas
+    // pour cette route, et on reste bien sur le formulaire d'inscription.
     try {
         await galleryClient.get('/gallery/me')
         router.replace('/gallery')
@@ -145,7 +149,7 @@ const handleRegister = async () => {
     submitted.value = true
     errorMessage.value = ''
 
-    if (!name.value || !email.value || !passwordValid.value) return
+    if (!nameValid.value || !email.value || !passwordValid.value) return
 
     loading.value = true
 

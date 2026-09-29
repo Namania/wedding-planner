@@ -1,6 +1,6 @@
 import Echo from 'laravel-echo'
 import Pusher, { type ChannelAuthorizationCallback } from 'pusher-js'
-import axios from 'axios'
+import axios, { type AxiosResponse } from 'axios'
 
 declare global {
     interface Window {
@@ -13,6 +13,41 @@ window.Pusher = Pusher
 const appUrl = (import.meta.env.VITE_API_BASE_URL as string).replace(/\/api\/?$/, '')
 
 let instance: Echo<'reverb'> | null = null
+
+/**
+ * Autorise un canal, avec le même rejeu qu'un 419 sur `galleryClient` : le
+ * socket peut se reconnecter après une longue inactivité (téléphone en
+ * veille), avec un jeton CSRF déjà périmé. Sans ce rafraîchissement, la
+ * reconnexion échouerait silencieusement et les photos cesseraient d'arriver
+ * en direct jusqu'au rechargement de la page.
+ */
+function authorizeChannel(
+    channelName: string,
+    socketId: string,
+    retried = false
+): Promise<AxiosResponse> {
+    return axios
+        .post(
+            `${appUrl}/broadcasting/auth`,
+            { socket_id: socketId, channel_name: channelName },
+            { withCredentials: true, withXSRFToken: true }
+        )
+        .catch(async (error: unknown) => {
+            if (retried || !axios.isAxiosError(error) || error.response?.status !== 419) {
+                throw error
+            }
+
+            try {
+                await axios.get(`${appUrl}/sanctum/csrf-cookie`, { withCredentials: true, withXSRFToken: true })
+            } catch {
+                // Le rafraîchissement a échoué : on propage la 419 d'origine.
+                throw error
+            }
+
+            // Hors du try : une erreur du rejeu doit remonter telle quelle.
+            return authorizeChannel(channelName, socketId, true)
+        })
+}
 
 export function getGalleryEcho(): Echo<'reverb'> {
     if (instance !== null) return instance
@@ -29,14 +64,9 @@ export function getGalleryEcho(): Echo<'reverb'> {
         // les cookies de session cross-origin (front sur :5172, API sur :8000).
         authorizer: (channel: { name: string }) => ({
             authorize(socketId: string, callback: ChannelAuthorizationCallback) {
-                axios
-                    .post(
-                        `${appUrl}/broadcasting/auth`,
-                        { socket_id: socketId, channel_name: channel.name },
-                        { withCredentials: true, withXSRFToken: true }
-                    )
+                authorizeChannel(channel.name, socketId)
                     .then((response) => callback(null, response.data))
-                    .catch((error) => callback(error, null))
+                    .catch((error: Error) => callback(error, null))
             },
         }),
     })

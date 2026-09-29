@@ -282,8 +282,11 @@ const handleLogout = async () => {
 }
 
 onMounted(async () => {
-    // Le serveur seul sait si la session est ouverte ; une erreur ici est
-    // déjà traitée par l'intercepteur du client, qui redirige.
+    // Le serveur seul sait si la session est ouverte. Un 401 ici est une
+    // réponse normale en l'absence de session : galleryClient l'exclut de sa
+    // redirection automatique (sinon ShareView, qui fait le même appel, ne
+    // pourrait jamais afficher son formulaire), donc c'est bien ce `catch` qui
+    // redirige — une seule navigation, pas deux.
     try {
         await galleryClient.get('/gallery/me')
     } catch {
