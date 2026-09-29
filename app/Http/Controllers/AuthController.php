@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\TrustedDeviceRegistry;
 use App\Services\TwoFactorAuthenticator;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\Request;
@@ -18,7 +19,10 @@ class AuthController extends Controller
      */
     private const CHALLENGE_TTL_SECONDS = 300;
 
-    public function __construct(private readonly TwoFactorAuthenticator $totp) {}
+    public function __construct(
+        private readonly TwoFactorAuthenticator $totp,
+        private readonly TrustedDeviceRegistry $devices,
+    ) {}
 
     public function me(Request $request)
     {
@@ -47,11 +51,27 @@ class AuthController extends Controller
 
         $user = User::where('email', $credentials['email'])->firstOrFail();
 
+        // Un appareil de confiance dispense du second facteur, jamais du mot de
+        // passe : on n'arrive ici qu'une fois celui-ci vérifié. Un cookie forgé
+        // ou illisible est écarté par EncryptCookies, qui le retire de la
+        // requête ; findValidFor reçoit alors null et on repart sur le TOTP.
+        $device = $this->devices->findValidFor($user, $request->cookie(TrustedDeviceRegistry::COOKIE));
+
+        if ($device !== null) {
+            $device->forceFill(['last_used_at' => now()])->save();
+
+            return $this->completeLogin($request, $user);
+        }
+
         if ($user->hasTwoFactorEnabled()) {
             return response()->json([
                 'two_factor' => 'required',
                 'challenge_token' => $this->issueChallengeToken($user),
             ]);
+        }
+
+        if (! $user->requiresTwoFactor()) {
+            return $this->completeLogin($request, $user);
         }
 
         // Pas encore enrôlé : on (re)génère un secret en attente. Il ne devient
@@ -88,7 +108,7 @@ class AuthController extends Controller
 
         $user->forceFill(['two_factor_confirmed_at' => now()])->save();
 
-        return $this->completeLogin($request, $user);
+        return $this->completeLogin($request, $user, $request->boolean('trust_device'));
     }
 
     /**
@@ -107,7 +127,7 @@ class AuthController extends Controller
 
         $this->assertValidCode($user->two_factor_secret, $request);
 
-        return $this->completeLogin($request, $user);
+        return $this->completeLogin($request, $user, $request->boolean('trust_device'));
     }
 
     public function logout(Request $request)
@@ -123,7 +143,7 @@ class AuthController extends Controller
         ], 200);
     }
 
-    private function completeLogin(Request $request, User $user)
+    private function completeLogin(Request $request, User $user, bool $trustDevice = false)
     {
         // remember: true est ce qui permet à la session de cinq minutes de se
         // rouvrir seule pendant une semaine.
@@ -131,9 +151,20 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        return response()->json([
+        $response = response()->json([
             'user' => $user->fresh(),
         ]);
+
+        // withCookie plutôt que Cookie::queue : la file n'est vidée dans la
+        // réponse que par AddQueuedCookiesToResponse, absent du groupe api et
+        // seulement appliqué par Sanctum aux requêtes venant d'un domaine
+        // déclaré stateful. Dépendre de cet empilement rendrait la pose du
+        // cookie silencieusement fragile.
+        if ($trustDevice) {
+            $response->withCookie($this->devices->issueFor($user, $request));
+        }
+
+        return $response;
     }
 
     private function assertValidCode(string $secret, Request $request): void

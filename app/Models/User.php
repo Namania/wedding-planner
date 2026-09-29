@@ -41,4 +41,17 @@ class User extends Authenticatable
     {
         return $this->two_factor_secret !== null && $this->two_factor_confirmed_at !== null;
     }
+
+    /**
+     * Le second facteur est-il imposé à ce compte ?
+     *
+     * Renvoie une constante pour l'instant : tous les comptes existants sont
+     * des comptes d'administration. Quand le rôle invité arrivera, ce sera
+     * $this->role !== 'guest', et c'est le seul endroit à reprendre — sans
+     * cela, login() pousserait les invités vers l'enrôlement TOTP.
+     */
+    public function requiresTwoFactor(): bool
+    {
+        return true;
+    }
 }
