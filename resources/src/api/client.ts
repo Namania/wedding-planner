@@ -30,11 +30,16 @@ apiClient.interceptors.response.use(
 
             try {
                 await apiClient.get('../sanctum/csrf-cookie')
-
-                return await apiClient(config)
             } catch {
+                // Le rafraîchissement a échoué : on propage la 419 d'origine, plus
+                // parlante ici que l'erreur du rafraîchissement lui-même.
                 return Promise.reject(error)
             }
+
+            // Hors du try : une erreur du rejeu est une vraie erreur de la requête et
+            // doit remonter telle quelle, sinon un 422 de validation serait déguisé en
+            // « Page Expired ».
+            return apiClient(config)
         }
 
         const authRoutes = ['/login', '/logout', '/two-factor-setup', '/two-factor-challenge']
