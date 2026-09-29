@@ -79,7 +79,8 @@
 
                     <div class="flex items-center gap-2">
                         <Checkbox inputId="trust_device" v-model="trustDevice" binary />
-                        <label for="trust_device" class="text-sm text-muted-color">
+                        <label for="trust_device"
+                            class="text-xs font-bold uppercase tracking-wider text-muted-color">
                             Se souvenir de cet appareil pendant 30 jours
                         </label>
                     </div>
@@ -197,6 +198,7 @@ const backToCredentials = () => {
     authStore.clearSession()
     code.value = ''
     password.value = ''
+    trustDevice.value = false
     errorMessage.value = ''
 }
 </script>
