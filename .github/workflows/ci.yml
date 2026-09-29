@@ -70,6 +70,9 @@ jobs:
       - name: Vérification des types
         run: npm run type-check
 
+      - name: Tests
+        run: npm run test
+
   release:
     name: Image & tag
     needs: [php, frontend]
