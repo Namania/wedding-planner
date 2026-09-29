@@ -22,5 +22,6 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     SimulationSwitcher: typeof import('./src/components/SimulationSwitcher.vue')['default']
     ThemeToggle: typeof import('./src/components/ThemeToggle.vue')['default']
+    TwoFactorDevices: typeof import('./src/components/TwoFactorDevices.vue')['default']
   }
 }

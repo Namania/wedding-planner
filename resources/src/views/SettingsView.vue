@@ -46,10 +46,13 @@
             </div>
         </div>
 
+        <TwoFactorDevices />
+
     </div>
 </template>
 
 <script setup lang="ts">
+import TwoFactorDevices from '@/components/TwoFactorDevices.vue'
 import { useWeddingStore } from '@/stores/wedding'
 import { toDateInputValue } from '@/utils/date'
 import DatePicker from 'primevue/datepicker'
