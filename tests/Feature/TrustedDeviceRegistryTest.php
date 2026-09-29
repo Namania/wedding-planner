@@ -23,7 +23,7 @@ class TrustedDeviceRegistryTest extends TestCase
 
         $this->registry = app(TrustedDeviceRegistry::class);
 
-        $this->user = User::create([
+        $this->user = User::factory()->create([
             'name' => 'Admin',
             'email' => 'admin@exemple.com',
             'password' => 'password',
@@ -84,7 +84,7 @@ class TrustedDeviceRegistryTest extends TestCase
     {
         $cookie = $this->registry->issueFor($this->user, $this->request());
 
-        $other = User::create([
+        $other = User::factory()->create([
             'name' => 'Autre',
             'email' => 'autre@exemple.com',
             'password' => 'password',
@@ -111,7 +111,7 @@ class TrustedDeviceRegistryTest extends TestCase
             ->forceFill(['expires_at' => now()->subDay()])
             ->save();
 
-        $other = User::create([
+        $other = User::factory()->create([
             'name' => 'Autre',
             'email' => 'autre@exemple.com',
             'password' => 'password',
@@ -129,7 +129,7 @@ class TrustedDeviceRegistryTest extends TestCase
         $this->registry->issueFor($this->user, $this->request());
         $mine = TwoFactorTrustedDevice::sole();
 
-        $other = User::create([
+        $other = User::factory()->create([
             'name' => 'Autre',
             'email' => 'autre@exemple.com',
             'password' => 'password',
@@ -147,7 +147,7 @@ class TrustedDeviceRegistryTest extends TestCase
         $this->registry->issueFor($this->user, $this->request());
         $this->registry->issueFor($this->user, $this->request('Mozilla/5.0 (iPhone; CPU iPhone OS 17_0) Safari/605.1'));
 
-        $other = User::create([
+        $other = User::factory()->create([
             'name' => 'Autre',
             'email' => 'autre@exemple.com',
             'password' => 'password',

@@ -29,7 +29,7 @@ class TrustedDeviceLoginTest extends TestCase
 
         $this->secret = app(TwoFactorAuthenticator::class)->generateSecret();
 
-        $this->user = User::create([
+        $this->user = User::factory()->create([
             'name' => 'Admin',
             'email' => 'admin@exemple.com',
             'password' => 'password',
@@ -210,7 +210,7 @@ class TrustedDeviceLoginTest extends TestCase
     /** Le chemin que tout nouvel admin emprunte : premier enrôlement TOTP. */
     public function test_trusting_the_device_during_first_enrolment_records_it(): void
     {
-        $fresh = User::create([
+        $fresh = User::factory()->create([
             'name' => 'Nouveau',
             'email' => 'nouveau@exemple.com',
             'password' => 'password',
@@ -236,7 +236,7 @@ class TrustedDeviceLoginTest extends TestCase
 
     public function test_every_account_currently_requires_the_second_factor(): void
     {
-        $fresh = User::create([
+        $fresh = User::factory()->create([
             'name' => 'Nouveau',
             'email' => 'nouveau@exemple.com',
             'password' => 'password',

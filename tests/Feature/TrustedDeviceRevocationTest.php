@@ -27,7 +27,7 @@ class TrustedDeviceRevocationTest extends TestCase
         config(['sanctum.stateful' => ['localhost']]);
         $this->withHeader('Origin', 'http://localhost');
 
-        $this->user = User::create([
+        $this->user = User::factory()->create([
             'name' => 'Admin',
             'email' => 'admin@exemple.com',
             'password' => 'password',
@@ -117,7 +117,7 @@ class TrustedDeviceRevocationTest extends TestCase
         $this->issueDevice();
         $device = TwoFactorTrustedDevice::sole();
 
-        $other = User::create([
+        $other = User::factory()->create([
             'name' => 'Autre',
             'email' => 'autre@exemple.com',
             'password' => 'password',
@@ -183,7 +183,7 @@ class TrustedDeviceRevocationTest extends TestCase
 
         $this->issueDevice();
 
-        $other = User::create([
+        $other = User::factory()->create([
             'name' => 'Autre',
             'email' => 'autre@exemple.com',
             'password' => 'password',

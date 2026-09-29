@@ -26,7 +26,7 @@ class TwoFactorAuthTest extends TestCase
         config(['sanctum.stateful' => ['localhost']]);
         $this->withHeader('Origin', 'http://localhost');
 
-        $this->user = User::create([
+        $this->user = User::factory()->create([
             'name' => 'Admin',
             'email' => 'admin@exemple.com',
             'password' => 'password',
