@@ -43,7 +43,15 @@ class User extends Authenticatable
     }
 
     /**
-     * Le second facteur est-il imposé à ce compte ?
+     * Ce compte doit-il s'enrôler au second facteur s'il ne l'est pas encore ?
+     *
+     * Ne gouverne QUE l'enrôlement, jamais le challenge : un compte déjà
+     * enrôlé passe par hasTwoFactorEnabled() sans jamais consulter cette
+     * méthode, et un appareil de confiance court-circuite les deux. Autrement
+     * dit, elle ne garantit à elle seule la présence d'aucun second facteur à
+     * la connexion — c'est à ne pas oublier là où l'on croit couper la 2FA
+     * d'un compte (voir user:disable-2fa, qui doit aussi purger les appareils
+     * de confiance).
      *
      * Renvoie une constante pour l'instant : tous les comptes existants sont
      * des comptes d'administration. Quand le rôle invité arrivera, ce sera

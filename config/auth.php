@@ -87,6 +87,12 @@ return [
 
     'remember_lifetime' => (int) env('AUTH_REMEMBER_LIFETIME', 10080),
 
+    // Attention : cette durée est aussi écrite en toutes lettres dans
+    // l'interface — « pendant 30 jours » dans resources/src/views/LoginView.vue
+    // et « pendant trente jours » dans
+    // resources/src/components/TwoFactorDevices.vue. Changer la variable
+    // d'environnement sans reprendre ces deux libellés ferait mentir
+    // l'interface en silence.
     'trusted_device_days' => (int) env('AUTH_TRUSTED_DEVICE_DAYS', 30),
 
     /*

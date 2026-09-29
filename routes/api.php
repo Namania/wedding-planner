@@ -71,9 +71,6 @@ Route::middleware(['auth:sanctum', 'admin.user', 'remember.rotate'])->group(func
     Route::get('/user', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
-    // La route de collection est déclarée avant celle à paramètre pour que
-    // DELETE /two-factor/devices ne soit jamais interprété comme un appareil
-    // nommé « devices ».
     Route::get('two-factor/devices', [TwoFactorDeviceController::class, 'index']);
     Route::delete('two-factor/devices', [TwoFactorDeviceController::class, 'destroyAll']);
     Route::delete('two-factor/devices/{device}', [TwoFactorDeviceController::class, 'destroy']);

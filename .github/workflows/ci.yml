@@ -45,7 +45,7 @@ jobs:
         run: php artisan test
 
   frontend:
-    name: Front — lint & types
+    name: Front — lint, types & tests
     runs-on: ubuntu-latest
     defaults:
       run:
