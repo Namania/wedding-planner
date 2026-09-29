@@ -54,7 +54,7 @@
                         class="w-48 h-48 max-w-full rounded-xl border border-surface-200 dark:border-surface-800 bg-white p-2" />
                     <Skeleton v-else class="!w-48 !h-48 !rounded-xl" />
 
-                    <div class="w-full flex items-center gap-2">
+                    <div class="w-full flex items-stretch gap-2">
                         <InputText :modelValue="authStore.secret ?? ''" readonly
                             class="w-full min-w-0 !rounded-xl !text-xs" />
                         <Button :icon="copied ? 'pi pi-check' : 'pi pi-copy'" variant="outlined"
@@ -71,7 +71,7 @@
                     </Message>
 
                     <div class="flex flex-col gap-1.5 items-center">
-                        <label for="code" class="text-xs font-bold uppercase tracking-wider text-muted-color self-start">
+                        <label for="code" class="text-xs font-bold uppercase tracking-wider text-muted-color">
                             Code de vérification
                         </label>
                         <InputOtp id="code" v-model="code" :length="6" integerOnly autofocus />
