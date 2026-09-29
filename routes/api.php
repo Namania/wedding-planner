@@ -15,6 +15,7 @@ use App\Http\Controllers\SeatingTableController;
 use App\Http\Controllers\SimulationController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TimelineEventController;
+use App\Http\Controllers\TwoFactorDeviceController;
 use App\Http\Controllers\VenueController;
 use App\Http\Controllers\WeddingController;
 use Illuminate\Support\Facades\Route;
@@ -64,6 +65,13 @@ Route::middleware(['auth:sanctum', 'gallery.guest'])->prefix('gallery')->group(f
 Route::middleware(['auth:sanctum', 'admin.user', 'remember.rotate'])->group(function () {
     Route::get('/user', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    // La route de collection est déclarée avant celle à paramètre pour que
+    // DELETE /two-factor/devices ne soit jamais interprété comme un appareil
+    // nommé « devices ».
+    Route::get('two-factor/devices', [TwoFactorDeviceController::class, 'index']);
+    Route::delete('two-factor/devices', [TwoFactorDeviceController::class, 'destroyAll']);
+    Route::delete('two-factor/devices/{device}', [TwoFactorDeviceController::class, 'destroy']);
 
     Route::get('metrics', [DashboardController::class, 'metrics']);
     Route::apiResource('guests', GuestController::class);
