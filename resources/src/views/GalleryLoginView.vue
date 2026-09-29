@@ -6,7 +6,7 @@
             <div class="text-center space-y-2">
                 <i class="pi pi-camera text-3xl text-indigo-600 dark:text-indigo-400"></i>
                 <h1 class="text-2xl font-bold tracking-tight">Galerie du mariage</h1>
-                <p class="text-sm text-muted-color">Reconnectez-vous avec votre prénom et votre code PIN.</p>
+                <p class="text-sm text-muted-color">Reconnectez-vous avec votre email et votre mot de passe.</p>
             </div>
 
             <form @submit.prevent="handleLogin" class="space-y-4">
@@ -15,17 +15,18 @@
                 </Message>
 
                 <div class="flex flex-col gap-1.5">
-                    <label for="name" class="text-xs font-bold uppercase tracking-wider text-muted-color">Votre
-                        prénom</label>
-                    <InputText id="name" v-model.trim="name" placeholder="Ex: Camille" class="w-full !rounded-xl"
-                        :class="{ 'p-invalid': submitted && !name }" autofocus />
+                    <label for="email" class="text-xs font-bold uppercase tracking-wider text-muted-color">Votre
+                        email</label>
+                    <InputText id="email" type="email" v-model.trim="email" placeholder="Ex: camille@exemple.com"
+                        class="w-full !rounded-xl" :class="{ 'p-invalid': submitted && !email }" autofocus />
                 </div>
 
                 <div class="flex flex-col gap-1.5">
-                    <label for="pin" class="text-xs font-bold uppercase tracking-wider text-muted-color">Code
-                        PIN</label>
-                    <InputText id="pin" v-model.trim="pin" inputmode="numeric" maxlength="6" placeholder="••••"
-                        type="password" class="w-full !rounded-xl" :class="{ 'p-invalid': submitted && !pin }" />
+                    <label for="password" class="text-xs font-bold uppercase tracking-wider text-muted-color">Votre
+                        mot de passe</label>
+                    <Password id="password" v-model="password" placeholder="••••••••" :feedback="false" toggleMask
+                        :fluid="true" :inputStyle="{ borderRadius: '0.75rem' }"
+                        :class="{ 'p-invalid': submitted && !password }" />
                 </div>
 
                 <Button type="submit" label="Se connecter" :loading="loading"
@@ -42,22 +43,26 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import galleryClient, { getGalleryToken, setGalleryToken } from '@/api/galleryClient'
+import galleryClient from '@/api/galleryClient'
 import InputText from 'primevue/inputtext'
+import Password from 'primevue/password'
 import Message from 'primevue/message'
 import axios from 'axios'
 
 const router = useRouter()
 
-const name = ref('')
-const pin = ref('')
+const email = ref('')
+const password = ref('')
 const submitted = ref(false)
 const loading = ref(false)
 const errorMessage = ref('')
 
-onMounted(() => {
-    if (getGalleryToken()) {
+onMounted(async () => {
+    try {
+        await galleryClient.get('/gallery/me')
         router.replace('/gallery')
+    } catch {
+        // Pas de session ouverte : on affiche le formulaire.
     }
 })
 
@@ -65,21 +70,20 @@ const handleLogin = async () => {
     submitted.value = true
     errorMessage.value = ''
 
-    if (!name.value || !pin.value) return
+    if (!email.value || !password.value) return
 
     loading.value = true
 
     try {
-        const { data } = await galleryClient.post('/gallery/login', {
-            name: name.value,
-            pin: pin.value,
+        await galleryClient.post('/gallery/login', {
+            email: email.value,
+            password: password.value,
         })
 
-        setGalleryToken(data.token)
         router.push('/gallery')
     } catch (error: unknown) {
         if (axios.isAxiosError(error) && error.response?.status === 422) {
-            errorMessage.value = 'Prénom ou code PIN incorrect.'
+            errorMessage.value = 'Email ou mot de passe incorrect.'
         } else if (axios.isAxiosError(error) && error.response?.status === 429) {
             errorMessage.value = 'Trop de tentatives, réessayez dans quelques minutes.'
         } else {

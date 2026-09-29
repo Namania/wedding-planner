@@ -100,7 +100,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import galleryClient, { getGalleryToken, setGalleryToken } from '@/api/galleryClient'
+import galleryClient from '@/api/galleryClient'
 import { getGalleryEcho } from '@/galleryEcho'
 import { useGalleryRealtime, type GalleryPhoto } from '@/composables/useGalleryRealtime'
 import Dialog from 'primevue/dialog'
@@ -111,16 +111,17 @@ import ConfirmPopup from 'primevue/confirmpopup'
 import { useConfirm } from 'primevue/useconfirm'
 import axios from 'axios'
 
-interface GalleryGuestProfile {
+interface GalleryProfile {
     id: number
     name: string
+    email: string
     photos_count?: number
 }
 
 const router = useRouter()
 const confirm = useConfirm()
 
-const me = ref<GalleryGuestProfile | null>(null)
+const me = ref<GalleryProfile | null>(null)
 const photos = ref<GalleryPhoto[]>([])
 const isLoading = ref(true)
 const isLoadingMore = ref(false)
@@ -276,13 +277,16 @@ const handleLogout = async () => {
     try {
         await galleryClient.post('/gallery/logout')
     } finally {
-        setGalleryToken(null)
         router.push('/gallery/login')
     }
 }
 
 onMounted(async () => {
-    if (!getGalleryToken()) {
+    // Le serveur seul sait si la session est ouverte ; une erreur ici est
+    // déjà traitée par l'intercepteur du client, qui redirige.
+    try {
+        await galleryClient.get('/gallery/me')
+    } catch {
         router.replace('/gallery/login')
         return
     }

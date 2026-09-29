@@ -43,7 +43,7 @@
 
                     <div class="flex flex-col gap-1.5">
                         <label for="name" class="text-xs font-bold uppercase tracking-wider text-muted-color">Votre
-                            prénom</label>
+                            nom</label>
                         <InputText id="name" v-model.trim="name" placeholder="Ex: Camille" class="w-full !rounded-xl"
                             :class="{ 'p-invalid': submitted && !name }" autofocus />
                         <small class="text-red-500 font-medium text-xs" v-if="submitted && !name">Ce champ est
@@ -51,14 +51,24 @@
                     </div>
 
                     <div class="flex flex-col gap-1.5">
-                        <label for="pin" class="text-xs font-bold uppercase tracking-wider text-muted-color">Code PIN
-                            (4 à 6 chiffres)</label>
-                        <InputText id="pin" v-model.trim="pin" inputmode="numeric" maxlength="6" placeholder="Ex: 4821"
-                            class="w-full !rounded-xl" :class="{ 'p-invalid': submitted && !pinValid }" />
-                        <small class="text-xs text-muted-color">Il vous permettra de vous reconnecter depuis un autre
-                            appareil — retenez-le bien !</small>
-                        <small class="text-red-500 font-medium text-xs" v-if="submitted && !pinValid">4 à 6 chiffres
-                            requis.</small>
+                        <label for="email" class="text-xs font-bold uppercase tracking-wider text-muted-color">Votre
+                            email</label>
+                        <InputText id="email" type="email" v-model.trim="email" placeholder="Ex: camille@exemple.com"
+                            class="w-full !rounded-xl" :class="{ 'p-invalid': submitted && !email }" />
+                        <small class="text-red-500 font-medium text-xs" v-if="submitted && !email">Ce champ est
+                            obligatoire.</small>
+                    </div>
+
+                    <div class="flex flex-col gap-1.5">
+                        <label for="password" class="text-xs font-bold uppercase tracking-wider text-muted-color">Votre
+                            mot de passe</label>
+                        <Password id="password" v-model="password" placeholder="••••••••" :feedback="false" toggleMask
+                            :fluid="true" :inputStyle="{ borderRadius: '0.75rem' }"
+                            :class="{ 'p-invalid': submitted && !passwordValid }" />
+                        <small class="text-xs text-muted-color">8 caractères minimum. Il vous permettra de vous
+                            reconnecter depuis un autre appareil.</small>
+                        <small class="text-red-500 font-medium text-xs" v-if="submitted && !passwordValid">8 caractères
+                            minimum.</small>
                     </div>
 
                     <Button type="submit" label="Rejoindre la galerie" :loading="loading"
@@ -76,8 +86,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import galleryClient, { getGalleryToken, setGalleryToken } from '@/api/galleryClient'
+import galleryClient from '@/api/galleryClient'
 import InputText from 'primevue/inputtext'
+import Password from 'primevue/password'
 import Message from 'primevue/message'
 import Skeleton from 'primevue/skeleton'
 import axios from 'axios'
@@ -97,19 +108,25 @@ const registrationsOpen = ref(false)
 const wedding = ref<WeddingInfo | null>(null)
 
 const name = ref('')
-const pin = ref('')
+const email = ref('')
+const password = ref('')
 const submitted = ref(false)
 const loading = ref(false)
 const errorMessage = ref('')
 
-const pinValid = computed(() => /^\d{4,6}$/.test(pin.value))
+const passwordValid = computed(() => password.value.length >= 8)
 
 const inviteToken = computed(() => String(route.params.token ?? ''))
 
 onMounted(async () => {
-    if (getGalleryToken()) {
+    // Plus de jeton à consulter : c'est le serveur qui sait si une session est
+    // ouverte, via le cookie envoyé avec la requête.
+    try {
+        await galleryClient.get('/gallery/me')
         router.replace('/gallery')
         return
+    } catch {
+        // Pas de session : on reste sur le formulaire.
     }
 
     try {
@@ -128,18 +145,20 @@ const handleRegister = async () => {
     submitted.value = true
     errorMessage.value = ''
 
-    if (!name.value || !pinValid.value) return
+    if (!name.value || !email.value || !passwordValid.value) return
 
     loading.value = true
 
     try {
-        const { data } = await galleryClient.post('/gallery/register', {
+        await galleryClient.post('/gallery/register', {
             token: inviteToken.value,
             name: name.value,
-            pin: pin.value,
+            email: email.value,
+            password: password.value,
         })
 
-        setGalleryToken(data.token)
+        // La session est déjà ouverte côté serveur : il n'y a plus de jeton à
+        // stocker, seulement à rediriger.
         router.push('/gallery')
     } catch (error: unknown) {
         if (axios.isAxiosError(error) && error.response?.status === 422) {
