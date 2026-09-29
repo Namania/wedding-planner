@@ -100,6 +100,64 @@ class TrustedDeviceRegistryTest extends TestCase
         $this->assertNull($this->registry->findValidFor($this->user, 'jeton-inventé'));
     }
 
+    public function test_it_lists_only_the_valid_devices_of_the_account(): void
+    {
+        $this->registry->issueFor($this->user, $this->request());
+        $this->registry->issueFor($this->user, $this->request('Mozilla/5.0 (iPhone; CPU iPhone OS 17_0) Safari/605.1'));
+
+        TwoFactorTrustedDevice::query()
+            ->orderBy('id')
+            ->first()
+            ->forceFill(['expires_at' => now()->subDay()])
+            ->save();
+
+        $other = User::create([
+            'name' => 'Autre',
+            'email' => 'autre@exemple.com',
+            'password' => 'password',
+        ]);
+        $this->registry->issueFor($other, $this->request());
+
+        $listed = $this->registry->listFor($this->user);
+
+        $this->assertCount(1, $listed);
+        $this->assertSame('Safari sur iPhone', $listed->first()->name);
+    }
+
+    public function test_it_revokes_a_device_of_the_account_and_refuses_the_others(): void
+    {
+        $this->registry->issueFor($this->user, $this->request());
+        $mine = TwoFactorTrustedDevice::sole();
+
+        $other = User::create([
+            'name' => 'Autre',
+            'email' => 'autre@exemple.com',
+            'password' => 'password',
+        ]);
+
+        $this->assertFalse($this->registry->revoke($other, $mine));
+        $this->assertSame(1, TwoFactorTrustedDevice::count());
+
+        $this->assertTrue($this->registry->revoke($this->user, $mine));
+        $this->assertSame(0, TwoFactorTrustedDevice::count());
+    }
+
+    public function test_it_revokes_every_device_of_the_account_only(): void
+    {
+        $this->registry->issueFor($this->user, $this->request());
+        $this->registry->issueFor($this->user, $this->request('Mozilla/5.0 (iPhone; CPU iPhone OS 17_0) Safari/605.1'));
+
+        $other = User::create([
+            'name' => 'Autre',
+            'email' => 'autre@exemple.com',
+            'password' => 'password',
+        ]);
+        $this->registry->issueFor($other, $this->request());
+
+        $this->assertSame(2, $this->registry->revokeAll($this->user));
+        $this->assertSame(1, TwoFactorTrustedDevice::count());
+    }
+
     public function test_it_falls_back_to_a_readable_label_for_unknown_agents(): void
     {
         $this->registry->issueFor($this->user, $this->request(''));

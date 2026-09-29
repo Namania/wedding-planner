@@ -18,11 +18,7 @@ class TwoFactorDeviceController extends Controller
             $request->cookie(TrustedDeviceRegistry::COOKIE),
         );
 
-        return TwoFactorTrustedDevice::query()
-            ->where('user_id', $request->user()->getAuthIdentifier())
-            ->where('expires_at', '>', now())
-            ->orderByDesc('last_used_at')
-            ->get()
+        return $this->devices->listFor($request->user())
             ->map(fn (TwoFactorTrustedDevice $device) => [
                 'id' => $device->getKey(),
                 'name' => $device->name,
@@ -35,22 +31,19 @@ class TwoFactorDeviceController extends Controller
 
     public function destroy(Request $request, TwoFactorTrustedDevice $device)
     {
-        // 404 et non 403 : on ne confirme pas l'existence d'un appareil qui
-        // appartient à quelqu'un d'autre.
-        abort_unless($device->user_id === $request->user()->getAuthIdentifier(), 404);
-
+        // L'appartenance se décide dans le service ; ici on choisit seulement
+        // la réponse. 404 et non 403 : on ne confirme pas l'existence d'un
+        // appareil qui appartient à quelqu'un d'autre.
         $wasCurrent = $this->isCurrent($request, $device);
 
-        $device->delete();
+        abort_unless($this->devices->revoke($request->user(), $device), 404);
 
         return $this->respond('Appareil révoqué.', $wasCurrent);
     }
 
     public function destroyAll(Request $request)
     {
-        TwoFactorTrustedDevice::query()
-            ->where('user_id', $request->user()->getAuthIdentifier())
-            ->delete();
+        $this->devices->revokeAll($request->user());
 
         // Supprimer les lignes de la table des appareils ne suffit pas : une
         // session déjà ouverte depuis un appareil perdu survivrait à cette

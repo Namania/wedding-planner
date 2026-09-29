@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\TwoFactorTrustedDevice;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Cookie;
@@ -53,11 +55,61 @@ class TrustedDeviceRegistry
             return null;
         }
 
-        return TwoFactorTrustedDevice::query()
-            ->where('user_id', $user->getAuthIdentifier())
+        return $this->query($user)
             ->where('token_hash', $this->hash($token))
             ->where('expires_at', '>', now())
             ->first();
+    }
+
+    /**
+     * Les appareils encore valides, le plus récemment utilisé en tête.
+     *
+     * @return Collection<int, TwoFactorTrustedDevice>
+     */
+    public function listFor(Authenticatable $user): Collection
+    {
+        return $this->query($user)
+            ->where('expires_at', '>', now())
+            ->orderByDesc('last_used_at')
+            ->get();
+    }
+
+    /**
+     * Révoque un appareil précis. Renvoie false si l'appareil n'appartient pas
+     * à ce compte : l'appelant décide quoi en faire — le contrôleur répond 404
+     * pour ne pas confirmer l'existence d'un appareil qui est à quelqu'un
+     * d'autre.
+     */
+    public function revoke(Authenticatable $user, TwoFactorTrustedDevice $device): bool
+    {
+        if ($device->user_id !== $user->getAuthIdentifier()) {
+            return false;
+        }
+
+        $device->delete();
+
+        return true;
+    }
+
+    /**
+     * Révoque tous les appareils du compte et renvoie leur nombre.
+     *
+     * Ne touche volontairement ni au jeton « remember me » ni aux sessions :
+     * ce service ne connaît que les appareils de confiance. Couper les
+     * reconnexions silencieuses relève de l'appelant, qui seul sait quelle
+     * session il doit éventuellement préserver.
+     */
+    public function revokeAll(Authenticatable $user): int
+    {
+        return $this->query($user)->delete();
+    }
+
+    /**
+     * @return Builder<TwoFactorTrustedDevice>
+     */
+    private function query(Authenticatable $user): Builder
+    {
+        return TwoFactorTrustedDevice::query()->where('user_id', $user->getAuthIdentifier());
     }
 
     private function hash(string $token): string

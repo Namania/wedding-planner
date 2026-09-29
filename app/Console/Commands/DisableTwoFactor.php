@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Models\TwoFactorTrustedDevice;
 use App\Models\User;
+use App\Services\TrustedDeviceRegistry;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 
@@ -13,7 +13,7 @@ class DisableTwoFactor extends Command
 
     protected $description = "Désactive la double authentification d'un compte admin (téléphone perdu)";
 
-    public function handle(): int
+    public function handle(TrustedDeviceRegistry $devices): int
     {
         $user = User::where('email', $this->argument('email'))->first();
 
@@ -23,9 +23,7 @@ class DisableTwoFactor extends Command
             return self::FAILURE;
         }
 
-        $devices = TwoFactorTrustedDevice::query()
-            ->where('user_id', $user->getAuthIdentifier())
-            ->delete();
+        $revoked = $devices->revokeAll($user);
 
         // Effacer le seul secret ne suffirait pas : login() teste l'appareil de
         // confiance AVANT hasTwoFactorEnabled(), donc un navigateur qui porte
@@ -44,7 +42,7 @@ class DisableTwoFactor extends Command
         $this->info("Double authentification désactivée pour {$user->email}.");
         $this->line(sprintf(
             '%d appareil(s) de confiance révoqué(s) et jeton de reconnexion renouvelé : toutes les reconnexions silencieuses sont coupées.',
-            $devices,
+            $revoked,
         ));
         $this->line('Un nouvel enrôlement sera demandé à la prochaine connexion, depuis n\'importe quel appareil.');
 
