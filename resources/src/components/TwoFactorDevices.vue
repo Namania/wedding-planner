@@ -13,11 +13,11 @@
                     déjà ouverte dessus n'est pas coupée pour autant.
                 </p>
             </div>
-            <Button v-if="devices.length > 1" label="Tout révoquer" severity="danger" variant="outlined" size="small"
+            <Button v-if="hasDevices" label="Tout révoquer" severity="danger" variant="outlined" size="small"
                 class="!rounded-xl shrink-0" :loading="revoking === 'all'" @click="confirmRevokeAll" />
         </div>
 
-        <p v-if="devices.length > 1" class="text-xs text-amber-600 dark:text-amber-500 flex items-start gap-1.5">
+        <p v-if="hasDevices" class="text-xs text-amber-600 dark:text-amber-500 flex items-start gap-1.5">
             <i class="pi pi-exclamation-triangle mt-0.5 shrink-0"></i>
             <span>« Tout révoquer » vous déconnecte réellement, sur tous les appareils — y compris celui-ci. Il
                 faudra vous reconnecter partout.</span>
@@ -49,8 +49,8 @@
                                 class="ml-1 align-middle" />
                         </p>
                         <p class="text-xs text-muted-color">
-                            {{ device.ip_address }} — vu {{ formatDate(device.last_used_at) }}, expire
-                            {{ formatDate(device.expires_at) }}
+                            {{ device.ip_address ?? 'IP inconnue' }} — vu {{ formatDate(device.last_used_at) }},
+                            expire {{ formatDate(device.expires_at) }}
                         </p>
                     </div>
                     <Button icon="pi pi-trash" severity="danger" variant="text" class="!rounded-xl shrink-0"
@@ -70,7 +70,7 @@ import Message from 'primevue/message'
 import Skeleton from 'primevue/skeleton'
 import Tag from 'primevue/tag'
 import { useConfirm } from 'primevue/useconfirm'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
 interface TrustedDevice {
     id: number
@@ -90,6 +90,14 @@ const revoking = ref<number | 'all' | null>(null)
 const loadError = ref('')
 // Erreur d'une révocation : affichée au-dessus de la liste, qui reste consultable.
 const actionError = ref('')
+
+// Un seul appareil suffit pour justifier « Tout révoquer » : c'est la seule
+// action qui coupe réellement la session en cours, y compris quand il n'y a
+// qu'une ligne à révoquer (ex : on a perdu son unique appareil de confiance
+// et on se reconnecte depuis ailleurs pour couper l'accès). Un seul calcul
+// pour le bouton et le bandeau d'avertissement, afin qu'ils ne puissent pas
+// se désynchroniser.
+const hasDevices = computed(() => devices.value.length > 0)
 
 const formatDate = (value: string | null): string => {
     if (!value) return 'jamais'
