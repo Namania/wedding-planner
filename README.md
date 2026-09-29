@@ -11,4 +11,4 @@ génère `APP_KEY` et joue les migrations automatiquement.
 
 docker compose exec php php artisan tinker
 
-\App\Models\User::create(['name' => 'Admin', 'email' => 'admin@exemple.com', 'password' => bcrypt('password')]);
+\App\Models\User::create(['name' => 'Admin', 'email' => 'admin@exemple.com', 'password' => bcrypt('password'), 'role' => \App\Models\User::ROLE_ADMIN]);

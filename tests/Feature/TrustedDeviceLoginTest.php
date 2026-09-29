@@ -234,7 +234,7 @@ class TrustedDeviceLoginTest extends TestCase
         $this->assertSame(1, TwoFactorTrustedDevice::query()->where('user_id', $fresh->id)->count());
     }
 
-    public function test_every_account_currently_requires_the_second_factor(): void
+    public function test_an_admin_account_requires_the_second_factor(): void
     {
         $fresh = User::factory()->create([
             'name' => 'Nouveau',
@@ -242,10 +242,9 @@ class TrustedDeviceLoginTest extends TestCase
             'password' => 'password',
         ]);
 
-        // Ce test épingle le point d'accroche du futur rôle invité : tant que
-        // requiresTwoFactor() renvoie true, tout compte neuf est poussé vers
-        // l'enrôlement. Le jour où il renverra false pour les invités, c'est ce
-        // test qui dira que la bascule a bien eu lieu.
+        // Le rôle invité existe désormais (voir UserRoleTest) et en est
+        // dispensé ; seuls les comptes d'administration, comme celui-ci,
+        // sont poussés vers l'enrôlement à leur première connexion.
         $this->assertTrue($fresh->requiresTwoFactor());
 
         $this->postJson('/api/login', [

@@ -71,8 +71,12 @@ class UserRoleTest extends TestCase
     public function test_the_role_has_no_default(): void
     {
         // Un compte créé sans rôle explicite doit échouer plutôt que de
-        // devenir administrateur par inadvertance.
+        // devenir administrateur par inadvertance. On vérifie que l'échec
+        // vient bien de la colonne role : sans ça, l'ajout futur d'une autre
+        // colonne NOT NULL sans défaut ferait passer ce test pour la
+        // mauvaise raison.
         $this->expectException(QueryException::class);
+        $this->expectExceptionMessage('role');
 
         User::forceCreate([
             'name' => 'Sans rôle',
