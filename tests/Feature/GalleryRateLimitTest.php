@@ -49,14 +49,12 @@ class GalleryRateLimitTest extends TestCase
             'password' => 'motdepasse',
         ]);
 
-        // Dix tentatives ratées sur l'adresse de Camille, réparties sur deux
-        // IP : le seau par IP (5 par minute) buterait le premier sans cela, et
-        // ce test ne prouverait plus rien du seau par adresse.
-        foreach (['10.0.0.1', '10.0.0.2'] as $ip) {
-            for ($i = 0; $i < 5; $i++) {
-                $this->attemptLogin('camille@exemple.com', 'mauvais-mot-de-passe', $ip)
-                    ->assertStatus(422);
-            }
+        // Dix tentatives ratées sur l'adresse de Camille, toutes depuis la même
+        // IP : le seau par IP (50 par minute) est loin d'être plein, c'est donc
+        // bien celui de l'adresse qui bute ensuite.
+        for ($i = 0; $i < 10; $i++) {
+            $this->attemptLogin('camille@exemple.com', 'mauvais-mot-de-passe', '10.0.0.1')
+                ->assertStatus(422);
         }
 
         // Le onzième essai sur cette adresse est refusé, depuis une IP neuve :
@@ -69,6 +67,29 @@ class GalleryRateLimitTest extends TestCase
         $this->attemptLogin('dominique@exemple.com', 'motdepasse', '10.0.0.3')
             ->assertOk()
             ->assertJsonPath('guest.email', 'dominique@exemple.com');
+    }
+
+    /**
+     * Cent invités derrière le Wi-Fi de la salle, une seule IP : au retour
+     * d'une pause, bien plus de cinq d'entre eux se reconnectent dans la même
+     * minute. Aucun ne doit recevoir 429 pour les tentatives des autres.
+     */
+    public function test_a_shared_ip_lets_many_guests_log_in_within_a_minute(): void
+    {
+        for ($i = 1; $i <= 20; $i++) {
+            User::factory()->guest()->create([
+                'email' => 'invite'.$i.'@exemple.com',
+                'password' => 'motdepasse',
+            ]);
+        }
+
+        for ($i = 1; $i <= 20; $i++) {
+            $this->attemptLogin('invite'.$i.'@exemple.com', 'motdepasse', '203.0.113.7')
+                ->assertOk();
+
+            $this->flushSession();
+            Auth::forgetGuards();
+        }
     }
 
     /**

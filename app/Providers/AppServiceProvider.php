@@ -68,13 +68,21 @@ class AppServiceProvider extends ServiceProvider
         // freiner un script qui créerait des comptes en boucle.
         RateLimiter::for('gallery-register', fn (Request $request) => Limit::perHour(100)->by('gr|'.$request->ip()));
 
-        // Le second seau porte sur l'adresse tentée, pas sur l'IP : c'est ce
-        // qui empêche de bombarder un compte précis depuis plusieurs réseaux.
-        // Il doit impérativement être indexé sur un champ réellement envoyé —
-        // une clé vide serait la même pour tout le monde, et transformerait ce
-        // seau en plafond global pour l'application entière.
+        // Le seau par IP est large pour la même raison que celui des
+        // inscriptions : cent invités derrière le Wi-Fi de la salle partagent
+        // une seule IP publique, et cinq connexions par minute pour toute la
+        // salle seraient intenables au retour d'une pause, quand tout le monde
+        // se reconnecte en même temps. Il ne freine plus qu'un balayage massif
+        // depuis un même réseau.
+        //
+        // La protection de chaque compte est le second seau, qui porte sur
+        // l'adresse tentée : c'est lui qui empêche de bombarder un compte
+        // précis, y compris depuis plusieurs réseaux. Il doit impérativement
+        // être indexé sur un champ réellement envoyé — une clé vide serait la
+        // même pour tout le monde, et transformerait ce seau en plafond global
+        // pour l'application entière.
         RateLimiter::for('gallery-login', fn (Request $request) => [
-            Limit::perMinute(5)->by('gl|'.$request->ip()),
+            Limit::perMinute(50)->by('gl|'.$request->ip()),
             Limit::perMinute(10)->by('gle|'.User::normalizeEmail($request->input('email'))),
         ]);
 
