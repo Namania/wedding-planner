@@ -6,6 +6,7 @@ use App\Models\GalleryGuest;
 use App\Models\GallerySettings;
 use App\Models\User;
 use App\Models\Wedding;
+use Illuminate\Auth\SessionGuard;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
@@ -144,6 +145,38 @@ class GalleryAuthTest extends TestCase
         Sanctum::actingAs(User::factory()->create());
 
         $this->getJson('/api/gallery/me')->assertForbidden();
+    }
+
+    /**
+     * Le cas concret : les mariés sont les admins, et ouvrent leur propre
+     * galerie depuis le navigateur où ils sont connectés à l'administration.
+     *
+     * La garde de Sanctum essaie d'abord les gardes de `sanctum.guard`
+     * (`['web']`) et ne regarde le jeton Bearer que si aucune n'a répondu : un
+     * cookie de reconnexion admin ressusciterait donc la session, et
+     * gallery.guest répondrait 403 sur toute la galerie. Avec la session
+     * longue, cette fenêtre dure une semaine et se rouvre toute seule.
+     */
+    public function test_a_guest_token_wins_over_an_admin_session_on_gallery_routes(): void
+    {
+        // Le cookie remember n'est lu que sur une requête « stateful » aux
+        // yeux de Sanctum : sans origine déclarée, EncryptCookies ne serait
+        // même pas dans le pipeline et le test ne prouverait rien.
+        config(['sanctum.stateful' => ['localhost']]);
+        $this->withHeader('Origin', 'http://localhost');
+
+        $admin = User::factory()->create(['remember_token' => 'jeton-admin']);
+        $guest = GalleryGuest::factory()->create();
+        $token = $guest->createToken('gallery')->plainTextToken;
+
+        $recaller = $admin->getKey().'|jeton-admin|'.$admin->getAuthPassword();
+
+        $this->withCredentials()
+            ->withCookie('remember_web_'.sha1(SessionGuard::class), $recaller)
+            ->withHeader('Authorization', 'Bearer '.$token)
+            ->getJson('/api/gallery/me')
+            ->assertOk()
+            ->assertJsonPath('id', $guest->getKey());
     }
 
     public function test_admin_can_read_settings_and_rotate_token(): void

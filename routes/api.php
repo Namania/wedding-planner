@@ -48,7 +48,12 @@ Route::post('gallery/register', [GalleryAuthController::class, 'register'])
 Route::post('gallery/login', [GalleryAuthController::class, 'login'])
     ->middleware('throttle:gallery-login');
 
-Route::middleware(['auth:sanctum', 'gallery.guest'])->prefix('gallery')->group(function () {
+// prefer.token AVANT auth:sanctum : les invités ne s'authentifient que par
+// jeton Bearer, alors que la garde de Sanctum essaie d'abord la session de
+// première partie. Sans lui, un navigateur admin — les mariés ouvrant leur
+// propre galerie — verrait sa session l'emporter sur le jeton invité et se
+// ferait refouler en 403 par gallery.guest.
+Route::middleware(['prefer.token', 'auth:sanctum', 'gallery.guest'])->prefix('gallery')->group(function () {
     Route::get('me', [GalleryAuthController::class, 'me']);
     Route::post('logout', [GalleryAuthController::class, 'logout']);
 
