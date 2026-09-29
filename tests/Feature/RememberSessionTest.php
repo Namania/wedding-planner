@@ -6,9 +6,11 @@ use App\Http\Middleware\RotateRememberToken;
 use App\Models\User;
 use Illuminate\Auth\SessionGuard;
 use Illuminate\Contracts\Auth\StatefulGuard;
+use Illuminate\Cookie\CookieValuePrefix;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 use Mockery;
 use Tests\TestCase;
 
@@ -54,11 +56,36 @@ class RememberSessionTest extends TestCase
 
         $response->assertOk();
 
+        $rotated = $this->user->fresh()->getRememberToken();
+
         $this->assertNotSame(
             'jeton-initial',
-            $this->user->fresh()->getRememberToken(),
+            $rotated,
             'Le jeton remember doit tourner à chaque réutilisation du cookie.',
         );
+
+        // La moitié qui compte pour l'utilisateur : la spec exige que la
+        // requête « change users.remember_token ET réémette le cookie ».
+        // Sans cette réémission, le navigateur garderait l'ancien cookie,
+        // que la rotation vient justement d'invalider : tout le monde serait
+        // déconnecté au bout de cinq minutes d'inactivité.
+        $reissued = collect($response->headers->getCookies())
+            ->first(fn ($c) => $c->getName() === 'remember_web_'.sha1(SessionGuard::class));
+
+        $this->assertNotNull($reissued, 'La réponse doit réémettre le cookie remember.');
+
+        // On compare les jetons, jamais les valeurs brutes : EncryptCookies
+        // chiffre chaque cookie sortant avec un vecteur d'initialisation neuf,
+        // donc deux chiffrés du MÊME jeton diffèrent déjà. Une assertion
+        // « la valeur a changé » passerait sans rien prouver.
+        $plain = CookieValuePrefix::remove(Crypt::decrypt($reissued->getValue(), false));
+
+        $this->assertStringContainsString(
+            $rotated,
+            $plain,
+            'Le cookie réémis doit porter le nouveau jeton.',
+        );
+        $this->assertStringNotContainsString('jeton-initial', $plain);
     }
 
     public function test_the_old_remember_cookie_stops_working_after_rotation(): void
