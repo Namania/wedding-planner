@@ -62,6 +62,65 @@ class UserRoleTest extends TestCase
         $this->assertTrue((bool) $callback($admin));
     }
 
+    /**
+     * Le pilote de diffusion des tests est `null` : son `auth()` ne consulte
+     * aucun canal et répond 200 à tout. Sans vrai diffuseur, un test HTTP sur
+     * `broadcasting/auth` passerait au vert sans rien prouver.
+     *
+     * Les canaux sont enregistrés sur l'instance de diffuseur résolue au
+     * démarrage : en changer en cours de test donne un diffuseur vierge, d'où
+     * la relecture du fichier de canaux — c'est bien celui de production que
+     * ces tests exercent. Les identifiants sont factices et aucune requête
+     * n'atteint Reverb : un refus s'arrête avant toute signature de réponse.
+     */
+    private function useRealBroadcaster(): void
+    {
+        config([
+            'broadcasting.default' => 'reverb',
+            'broadcasting.connections.reverb.key' => 'cle-de-test',
+            'broadcasting.connections.reverb.secret' => 'secret-de-test',
+            'broadcasting.connections.reverb.app_id' => 'app-de-test',
+            'broadcasting.connections.reverb.options.host' => 'reverb.invalid',
+        ]);
+
+        require base_path('routes/channels.php');
+    }
+
+    /**
+     * Les deux tests ci-dessus invoquent les closures brutes rendues par
+     * Broadcast::getChannels() : la route `broadcasting/auth` et sa liste de
+     * gardes n'y sont jamais exercées. C'est exactement l'angle mort qui avait
+     * laissé passer une perte de garde plus tôt dans ce chantier. Ces deux-ci
+     * passent réellement par HTTP.
+     */
+    public function test_a_guest_is_refused_on_the_wedding_channel_over_http(): void
+    {
+        $this->useRealBroadcaster();
+
+        $guest = User::factory()->guest()->create();
+
+        $this->actingAs($guest)
+            ->post('/broadcasting/auth', [
+                'socket_id' => '1234.5678',
+                'channel_name' => 'private-wedding',
+            ])
+            ->assertForbidden();
+    }
+
+    public function test_a_banned_guest_is_refused_on_the_gallery_channel_over_http(): void
+    {
+        $this->useRealBroadcaster();
+
+        $banned = User::factory()->guest()->create(['banned_at' => now()]);
+
+        $this->actingAs($banned)
+            ->post('/broadcasting/auth', [
+                'socket_id' => '1234.5678',
+                'channel_name' => 'private-gallery',
+            ])
+            ->assertForbidden();
+    }
+
     public function test_a_guest_is_never_pushed_towards_two_factor_enrolment(): void
     {
         $this->assertFalse(User::factory()->guest()->create()->requiresTwoFactor());
