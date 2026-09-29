@@ -25,8 +25,8 @@
             </div>
 
             <p class="text-xs text-muted-color">
-                À poser sur les tables : les invités le scannent, choisissent un prénom et un code PIN, puis
-                partagent leurs photos.
+                À poser sur les tables : les invités le scannent, puis s'inscrivent avec un email et un mot de
+                passe pour partager leurs photos.
             </p>
 
             <Button label="Imprimer le QR code" icon="pi pi-print" variant="outlined" size="small"
@@ -83,11 +83,12 @@
                         {{ guest.name }}
                         <Tag v-if="guest.banned" value="Banni" severity="danger" class="!text-xs ml-1" />
                     </p>
+                    <p class="text-xs text-muted-color truncate">{{ guest.email }}</p>
                     <p class="text-xs text-muted-color">{{ guest.photos_count }} photo(s)</p>
                 </div>
                 <div class="flex items-center shrink-0">
                     <Button icon="pi pi-key" variant="text" severity="secondary" class="!w-8 !h-8"
-                        title="Nouveau PIN" @click="resetPin(guest)" />
+                        title="Nouveau mot de passe" @click="resetPassword(guest)" />
                     <Button v-if="!guest.banned" icon="pi pi-ban" variant="text" severity="danger" class="!w-8 !h-8"
                         @click="banGuest(guest)" />
                     <Button v-else icon="pi pi-undo" variant="text" severity="secondary" class="!w-8 !h-8"
@@ -131,12 +132,13 @@
                 class="w-full !rounded-xl" :loading="isLoadingMore" @click="loadMore" />
         </div>
 
-        <Dialog v-model:visible="pinDialog" header="Nouveau code PIN" modal class="w-[90vw] max-w-md !rounded-2xl"
+        <Dialog v-model:visible="passwordDialog" header="Nouveau mot de passe" modal class="w-[90vw] max-w-md !rounded-2xl"
             :draggable="false">
             <div class="text-center space-y-2">
-                <p class="text-sm text-muted-color">Transmettez ce code à {{ pinGuestName }} — il ne sera plus
-                    affiché ensuite.</p>
-                <p class="text-3xl font-bold tracking-[0.3em]">{{ newPin }}</p>
+                <p class="text-sm text-muted-color">
+                    Transmettez ce mot de passe à {{ passwordGuestName }} — il ne sera plus affiché.
+                </p>
+                <p class="text-3xl font-bold tracking-[0.3em]">{{ newPassword }}</p>
             </div>
         </Dialog>
     </div>
@@ -168,19 +170,21 @@ interface GallerySettings {
     photos_count: number
 }
 
-interface GalleryGuestRow {
+interface GuestRow {
     id: number
     name: string
+    email: string
     banned: boolean
     photos_count: number
     last_seen_at: string | null
+    created_at: string
 }
 
 const router = useRouter()
 const confirm = useConfirm()
 
 const settings = ref<GallerySettings | null>(null)
-const guests = ref<GalleryGuestRow[]>([])
+const guests = ref<GuestRow[]>([])
 const photos = ref<GalleryPhoto[]>([])
 const currentPage = ref(1)
 const lastPage = ref(1)
@@ -189,9 +193,9 @@ const isLoadingMore = ref(false)
 const qrDataUrl = ref('')
 const copied = ref(false)
 
-const pinDialog = ref(false)
-const newPin = ref('')
-const pinGuestName = ref('')
+const passwordDialog = ref(false)
+const newPassword = ref('')
+const passwordGuestName = ref('')
 
 const hasMore = computed(() => currentPage.value < lastPage.value)
 const shareUrl = computed(() =>
@@ -280,25 +284,25 @@ const exportZip = () => {
     window.open(`${base}/gallery-admin/export`, '_blank')
 }
 
-const resetPin = async (guest: GalleryGuestRow) => {
-    const { data } = await apiClient.post(`/gallery-admin/guests/${guest.id}/reset-pin`)
-    newPin.value = data.pin
-    pinGuestName.value = guest.name
-    pinDialog.value = true
+const resetPassword = async (guest: GuestRow) => {
+    const { data } = await apiClient.post(`/gallery-admin/guests/${guest.id}/reset-password`)
+    newPassword.value = data.password
+    passwordGuestName.value = guest.name
+    passwordDialog.value = true
 }
 
-const banGuest = async (guest: GalleryGuestRow) => {
+const banGuest = async (guest: GuestRow) => {
     const { data } = await apiClient.patch(`/gallery-admin/guests/${guest.id}/ban`)
     Object.assign(guest, data)
     await fetchPhotos()
 }
 
-const unbanGuest = async (guest: GalleryGuestRow) => {
+const unbanGuest = async (guest: GuestRow) => {
     const { data } = await apiClient.patch(`/gallery-admin/guests/${guest.id}/unban`)
     Object.assign(guest, data)
 }
 
-const confirmDeleteGuest = (event: MouseEvent, guest: GalleryGuestRow) => {
+const confirmDeleteGuest = (event: MouseEvent, guest: GuestRow) => {
     confirm.require({
         target: event.currentTarget as HTMLElement,
         message: `Supprimer ${guest.name} et toutes ses photos ?`,
