@@ -37,6 +37,14 @@ export const useAuthStore = defineStore('auth', () => {
 
         const { data } = await apiClient.post('/login', credentials);
 
+        // Appareil de confiance : le back a ouvert la session directement, il
+        // n'y a pas de second facteur à présenter.
+        if (data.user) {
+            user.value = data.user;
+            resetTwoFactor();
+            return;
+        }
+
         // Aucune session n'est ouverte à ce stade : la réponse ne contient pas
         // d'utilisateur, seulement de quoi enchaîner sur le second facteur.
         challengeToken.value = data.challenge_token;
@@ -50,7 +58,7 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
-    async function submitTwoFactor(code: string) {
+    async function submitTwoFactor(code: string, trustDevice = false) {
         const endpoint = twoFactorState.value === 'setup'
             ? '/two-factor-setup'
             : '/two-factor-challenge';
@@ -58,6 +66,7 @@ export const useAuthStore = defineStore('auth', () => {
         const { data } = await apiClient.post(endpoint, {
             challenge_token: challengeToken.value,
             code,
+            trust_device: trustDevice,
         });
 
         user.value = data.user;

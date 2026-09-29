@@ -77,6 +77,13 @@
                         <InputOtp id="code" v-model="code" :length="6" integerOnly autofocus />
                     </div>
 
+                    <div class="flex items-center gap-2">
+                        <Checkbox inputId="trust_device" v-model="trustDevice" binary />
+                        <label for="trust_device" class="text-sm text-muted-color">
+                            Se souvenir de cet appareil pendant 30 jours
+                        </label>
+                    </div>
+
                     <Button type="submit" :label="isSetup ? 'Activer et se connecter' : 'Vérifier'" :loading="loading"
                         class="w-full !rounded-xl !py-3 font-semibold mt-2" />
 
@@ -97,6 +104,7 @@ import InputOtp from 'primevue/inputotp'
 import Password from 'primevue/password'
 import Message from 'primevue/message'
 import Skeleton from 'primevue/skeleton'
+import Checkbox from 'primevue/checkbox'
 import QRCode from 'qrcode'
 import axios from 'axios'
 
@@ -106,6 +114,7 @@ const authStore = useAuthStore()
 const email = ref('')
 const password = ref('')
 const code = ref('')
+const trustDevice = ref(false)
 const submitted = ref(false)
 const loading = ref(false)
 const errorMessage = ref('')
@@ -143,6 +152,13 @@ const handleLogin = async () => {
 
     try {
         await authStore.login({ email: email.value, password: password.value })
+
+        // Sur un appareil de confiance, la session est déjà ouverte : il n'y a
+        // pas d'étape de second facteur à afficher.
+        if (authStore.isAuthenticated) {
+            router.push({ name: 'dashboard' })
+            return
+        }
     } catch (error: unknown) {
         reportError(error, 'Identifiants incorrects ou problème serveur.')
     } finally {
@@ -161,7 +177,7 @@ const handleTwoFactor = async () => {
     loading.value = true
 
     try {
-        await authStore.submitTwoFactor(code.value)
+        await authStore.submitTwoFactor(code.value, trustDevice.value)
         router.push({ name: 'dashboard' })
     } catch (error: unknown) {
         code.value = ''
