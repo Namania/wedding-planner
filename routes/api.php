@@ -48,11 +48,13 @@ Route::post('gallery/register', [GalleryAuthController::class, 'register'])
 Route::post('gallery/login', [GalleryAuthController::class, 'login'])
     ->middleware('throttle:gallery-login');
 
-// prefer.token AVANT auth:sanctum : les invités ne s'authentifient que par
-// jeton Bearer, alors que la garde de Sanctum essaie d'abord la session de
-// première partie. Sans lui, un navigateur admin — les mariés ouvrant leur
-// propre galerie — verrait sa session l'emporter sur le jeton invité et se
-// ferait refouler en 403 par gallery.guest.
+// prefer.token AVANT auth:sanctum : depuis la tâche 3, les invités
+// s'authentifient par session comme les administrateurs — un jeton Bearer ici
+// n'est plus qu'un résidu (ancien flux GalleryGuest, retiré en tâche 5). Tant
+// qu'un tel client existe, ce garde-fou reste nécessaire : la garde de
+// Sanctum essaie d'abord la session de première partie, et un navigateur
+// admin — les mariés ouvrant leur propre galerie — verrait sinon sa session
+// l'emporter sur le jeton et se ferait refouler en 403 par gallery.guest.
 Route::middleware(['prefer.token', 'auth:sanctum', 'gallery.guest', 'remember.rotate'])->prefix('gallery')->group(function () {
     Route::get('me', [GalleryAuthController::class, 'me']);
     Route::post('logout', [GalleryAuthController::class, 'logout']);
@@ -102,7 +104,7 @@ Route::middleware(['auth:sanctum', 'admin.user', 'remember.rotate'])->group(func
         Route::get('guests', [GalleryAdminController::class, 'guests']);
         Route::patch('guests/{guest}/ban', [GalleryAdminController::class, 'ban']);
         Route::patch('guests/{guest}/unban', [GalleryAdminController::class, 'unban']);
-        Route::post('guests/{guest}/reset-pin', [GalleryAdminController::class, 'resetPin']);
+        Route::post('guests/{guest}/reset-password', [GalleryAdminController::class, 'resetPassword']);
         Route::delete('guests/{guest}', [GalleryAdminController::class, 'destroyGuest']);
 
         Route::get('photos', [GalleryAdminController::class, 'photos']);

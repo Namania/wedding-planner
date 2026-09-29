@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
@@ -39,14 +38,5 @@ class GalleryGuest extends Authenticatable
     public function isBanned(): bool
     {
         return $this->banned_at !== null;
-    }
-
-    /**
-     * La tâche 2 a renommé la colonne en `user_id` (les photos appartiennent
-     * désormais à un compte) : la convention par défaut ne suffit plus.
-     */
-    public function photos(): HasMany
-    {
-        return $this->hasMany(GalleryPhoto::class, 'user_id');
     }
 }

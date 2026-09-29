@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\GalleryPhoto;
 use App\Models\GallerySettings;
 use App\Models\User;
 use App\Models\Wedding;
@@ -131,6 +132,19 @@ class GalleryAuthTest extends TestCase
         ])->assertOk()->assertJsonPath('guest.name', 'Camille D.');
     }
 
+    public function test_login_rejects_a_wrong_password_for_an_existing_guest(): void
+    {
+        User::factory()->guest()->create([
+            'email' => 'camille@exemple.com',
+            'password' => 'motdepasse',
+        ]);
+
+        $this->postJson('/api/gallery/login', [
+            'email' => 'camille@exemple.com',
+            'password' => 'pas-le-bon-mot-de-passe',
+        ])->assertStatus(422)->assertJsonValidationErrors('email');
+    }
+
     /**
      * Même message que pour un mot de passe faux ou un email inconnu : les
      * distinguer révélerait qu'un compte banni existe pour cette adresse.
@@ -223,14 +237,15 @@ class GalleryAuthTest extends TestCase
         config(['gallery.disk' => 'local']);
         Storage::fake('local');
 
+        // Un autre compte invité, avec déjà une photo à lui : si le bug de la
+        // tâche 2 revenait, l'envoi ci-dessous pourrait s'attribuer à ce
+        // compte au lieu de celui qui vient de s'inscrire — son décompte de
+        // photos resterait alors à 1, pas 2.
+        $other = User::factory()->guest()->create();
+        GalleryPhoto::factory()->create(['user_id' => $other->id]);
+
         $registration = $this->register()->assertCreated();
         $guestId = $registration->json('guest.id');
-
-        // Un autre compte invité, créé après coup : si l'identifiant de la
-        // photo coïncidait par accident avec un autre id, ce serait le signe
-        // du bug — la photo n'appartient qu'au compte qui vient de s'inscrire.
-        $other = User::factory()->guest()->create();
-        $this->assertNotSame($other->id, $guestId);
 
         $upload = $this->postJson('/api/gallery/photos', [
             'photo' => UploadedFile::fake()->image('mariage.jpg', 2000, 1500),
@@ -241,5 +256,6 @@ class GalleryAuthTest extends TestCase
             'id' => $upload->json('id'),
             'user_id' => $guestId,
         ]);
+        $this->assertSame(1, $other->photos()->count());
     }
 }

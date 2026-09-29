@@ -2,8 +2,8 @@
 
 namespace App\Http\Resources;
 
-use App\Models\GalleryGuest;
 use App\Models\GalleryPhoto;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use OpenApi\Attributes as OA;
@@ -41,7 +41,7 @@ class GallerySettingsResource extends JsonResource
             'registration_closes_at' => $this->registration_closes_at?->toISOString(),
             'max_guests' => $this->max_guests,
             'max_photos_per_guest' => $this->max_photos_per_guest,
-            'guests_count' => GalleryGuest::count(),
+            'guests_count' => User::where('role', User::ROLE_GUEST)->count(),
             'photos_count' => GalleryPhoto::count(),
         ];
     }

@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\GalleryGuestResource;
 use App\Http\Resources\GalleryPhotoResource;
 use App\Http\Resources\GallerySettingsResource;
-use App\Models\GalleryGuest;
+use App\Http\Resources\GuestResource;
 use App\Models\GalleryPhoto;
 use App\Models\GallerySettings;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use OpenApi\Attributes as OA;
@@ -84,8 +83,8 @@ class GalleryAdminController extends Controller
     )]
     public function guests()
     {
-        return GalleryGuestResource::collection(
-            GalleryGuest::withCount('photos')->orderBy('name')->get()
+        return GuestResource::collection(
+            User::where('role', User::ROLE_GUEST)->withCount('photos')->orderBy('name')->get()
         );
     }
 
@@ -98,17 +97,21 @@ class GalleryAdminController extends Controller
         ],
         responses: [
             new OA\Response(response: 200, description: 'Invité banni', content: new OA\JsonContent(ref: '#/components/schemas/GalleryGuest')),
+            new OA\Response(response: 404, description: "Ce compte n'est pas un invité"),
         ]
     )]
-    public function ban(GalleryGuest $guest)
+    public function ban(User $guest)
     {
-        $guest->update(['banned_at' => now()]);
+        $this->assertGuest($guest);
 
-        $guest->tokens()->delete();
+        // update() ignorerait banned_at en silence : #[Fillable] sur User ne
+        // liste que name/email/password/role, à dessein (tâche 1).
+        $guest->forceFill(['banned_at' => now()])->save();
+
         $guest->photos()->whereNull('hidden_at')->get()
             ->each(fn (GalleryPhoto $photo) => $photo->update(['hidden_at' => now()]));
 
-        return new GalleryGuestResource($guest->loadCount('photos'));
+        return new GuestResource($guest->loadCount('photos'));
     }
 
     #[OA\Patch(
@@ -120,35 +123,41 @@ class GalleryAdminController extends Controller
         ],
         responses: [
             new OA\Response(response: 200, description: 'Invité débanni', content: new OA\JsonContent(ref: '#/components/schemas/GalleryGuest')),
+            new OA\Response(response: 404, description: "Ce compte n'est pas un invité"),
         ]
     )]
-    public function unban(GalleryGuest $guest)
+    public function unban(User $guest)
     {
-        $guest->update(['banned_at' => null]);
+        $this->assertGuest($guest);
 
-        return new GalleryGuestResource($guest->loadCount('photos'));
+        $guest->forceFill(['banned_at' => null])->save();
+
+        return new GuestResource($guest->loadCount('photos'));
     }
 
     #[OA\Post(
-        path: '/api/gallery-admin/guests/{guest}/reset-pin',
-        summary: 'Regénérer le PIN d\'un invité (affiché une seule fois)',
+        path: '/api/gallery-admin/guests/{guest}/reset-password',
+        summary: 'Regénérer le mot de passe d\'un invité (affiché une seule fois)',
         tags: ['GalleryAdmin'],
         parameters: [
             new OA\Parameter(name: 'guest', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
         ],
         responses: [
-            new OA\Response(response: 200, description: 'Nouveau PIN en clair, à transmettre à l\'invité'),
+            new OA\Response(response: 200, description: 'Nouveau mot de passe en clair, à transmettre à l\'invité'),
+            new OA\Response(response: 404, description: "Ce compte n'est pas un invité"),
         ]
     )]
-    public function resetPin(GalleryGuest $guest)
+    public function resetPassword(User $guest)
     {
-        $pin = (string) random_int(100000, 999999);
+        $this->assertGuest($guest);
 
-        $guest->update(['pin_hash' => Hash::make($pin)]);
+        $password = Str::password(12, symbols: false);
+
+        $guest->update(['password' => $password]);
 
         return response()->json([
-            'pin' => $pin,
-            'guest' => new GalleryGuestResource($guest),
+            'password' => $password,
+            'guest' => new GuestResource($guest),
         ]);
     }
 
@@ -161,15 +170,27 @@ class GalleryAdminController extends Controller
         ],
         responses: [
             new OA\Response(response: 200, description: 'Compte supprimé'),
+            new OA\Response(response: 404, description: "Ce compte n'est pas un invité"),
         ]
     )]
-    public function destroyGuest(GalleryGuest $guest)
+    public function destroyGuest(User $guest)
     {
+        $this->assertGuest($guest);
+
         $guest->photos()->get()->each(fn (GalleryPhoto $photo) => $photo->delete());
-        $guest->tokens()->delete();
         $guest->delete();
 
         return response()->json(['message' => 'Compte invité supprimé.']);
+    }
+
+    /**
+     * Ces routes lient {guest} à un User quelconque. Sans cette garde, un
+     * administrateur pourrait être banni ou supprimé par le chemin prévu pour
+     * les invités. 404 plutôt que 403 : on ne confirme pas son existence.
+     */
+    private function assertGuest(User $guest): void
+    {
+        abort_unless($guest->isGuest(), 404);
     }
 
     #[OA\Get(
