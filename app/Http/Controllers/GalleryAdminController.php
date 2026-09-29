@@ -153,7 +153,20 @@ class GalleryAdminController extends Controller
 
         $password = Str::password(12, symbols: false);
 
-        $guest->update(['password' => $password]);
+        // Le jeton de reconnexion tourne avec le mot de passe. Le cas nominal
+        // de cette fonctionnalité est un invité qui a perdu son téléphone :
+        // Laravel ne rejoue pas le mot de passe pour valider un cookie
+        // « remember me », donc sans cette rotation, qui ramasse l'appareil
+        // garderait l'accès une semaine entière alors que les mariés croient
+        // avoir repris la main.
+        //
+        // Les sessions déjà ouvertes en base ne sont pas purgées : elles ne
+        // durent que cinq minutes, c'est le cookie de reconnexion qui portait
+        // le vrai risque.
+        $guest->forceFill([
+            'password' => $password,
+            'remember_token' => Str::random(60),
+        ])->save();
 
         return response()->json([
             'password' => $password,

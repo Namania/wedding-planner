@@ -4,7 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\GalleryPhoto;
 use App\Models\User;
+use Illuminate\Auth\SessionGuard;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -50,6 +52,50 @@ class GalleryAdminGuestsTest extends TestCase
 
         $this->assertNotEmpty($password);
         $this->assertTrue(Hash::check($password, $guest->fresh()->password));
+    }
+
+    /**
+     * Le cas nominal de la réinitialisation est un invité qui a perdu son
+     * téléphone. Laravel ne rejoue pas le mot de passe pour valider un cookie
+     * « remember me » : sans rotation du jeton de reconnexion, qui ramasse
+     * l'appareil garde l'accès une semaine entière alors que les mariés
+     * croient avoir repris la main.
+     */
+    public function test_resetting_a_password_invalidates_the_remember_cookie(): void
+    {
+        $cookie = 'remember_web_'.sha1(SessionGuard::class);
+
+        $perdu = User::factory()->guest()->create();
+        $perdu->forceFill(['remember_token' => 'jeton-du-telephone-perdu'])->save();
+
+        // Un second invité sert de témoin : sans lui, un test où plus aucun
+        // cookie ne passe serait vert sans rien prouver.
+        $temoin = User::factory()->guest()->create();
+        $temoin->forceFill(['remember_token' => 'jeton-du-temoin'])->save();
+
+        $this->actingAs($this->admin)
+            ->postJson('/api/gallery-admin/guests/'.$perdu->getKey().'/reset-password')
+            ->assertOk();
+
+        $this->assertNotSame('jeton-du-telephone-perdu', $perdu->fresh()->getRememberToken());
+
+        $this->flushSession();
+        Auth::forgetGuards();
+
+        // withCookie (et non withUnencryptedCookie) : Sanctum applique
+        // EncryptCookies aux requêtes d'un domaine stateful.
+        $this->withCredentials()
+            ->withCookie($cookie, $perdu->getKey().'|jeton-du-telephone-perdu|'.$perdu->getAuthPassword())
+            ->getJson('/api/gallery/me')
+            ->assertUnauthorized();
+
+        $this->flushSession();
+        Auth::forgetGuards();
+
+        $this->withCredentials()
+            ->withCookie($cookie, $temoin->getKey().'|jeton-du-temoin|'.$temoin->getAuthPassword())
+            ->getJson('/api/gallery/me')
+            ->assertOk();
     }
 
     public function test_it_refuses_to_act_on_an_administrator(): void
