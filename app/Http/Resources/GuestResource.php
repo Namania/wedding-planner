@@ -6,17 +6,9 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use OpenApi\Attributes as OA;
 
-/**
- * Un compte invité vu par la galerie. Remplace GalleryGuestResource en
- * conservant sa forme, que le front consomme telle quelle ; seul l'email
- * s'y ajoute.
- *
- * Schéma nommé `GalleryAccount` (et non `Guest`) : ce nom est déjà pris par
- * WeddingGuestResource, qui décrit les invités de la liste du mariage — un
- * domaine sans rapport avec les comptes de la galerie photo.
- */
 #[OA\Schema(
     schema: 'GalleryAccount',
+    description: 'Compte invité de la galerie photo (le nom GalleryAccount évite toute confusion avec le schéma Guest, qui décrit les invités de la liste du mariage).',
     type: 'object',
     properties: [
         new OA\Property(property: 'id', type: 'integer', example: 3),

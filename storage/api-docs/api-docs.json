@@ -3085,9 +3085,9 @@
                 "type": "object"
             },
             "GalleryAccount": {
+                "description": "Compte invité de la galerie photo (le nom GalleryAccount évite toute confusion avec le schéma Guest, qui décrit les invités de la liste du mariage).",
                 "properties": {
                     "id": {
-                        "description": "Un compte invité vu par la galerie. Remplace GalleryGuestResource en\nconservant sa forme, que le front consomme telle quelle ; seul l'email\ns'y ajoute.\n\nSchéma nommé `GalleryAccount` (et non `Guest`) : ce nom est déjà pris par\nWeddingGuestResource, qui décrit les invités de la liste du mariage — un\ndomaine sans rapport avec les comptes de la galerie photo.",
                         "type": "integer",
                         "example": 3
                     },
