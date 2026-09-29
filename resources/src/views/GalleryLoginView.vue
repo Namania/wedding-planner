@@ -36,6 +36,10 @@
             <p class="text-center text-xs text-muted-color">
                 Pas encore de compte ? Scannez le QR code présent sur les tables du mariage.
             </p>
+
+            <p class="text-center text-xs text-muted-color">
+                Mot de passe oublié ? Demandez aux mariés : ils peuvent vous en attribuer un nouveau.
+            </p>
         </div>
     </div>
 </template>

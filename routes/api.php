@@ -51,9 +51,14 @@ Route::post('gallery/login', [GalleryAuthController::class, 'login'])
 // Depuis la tâche 3, les invités s'authentifient par session comme les
 // administrateurs : plus besoin d'arbitrer entre jeton Bearer et session
 // (l'ancien flux GalleryGuest, retiré en tâche 5, en avait besoin).
+// Hors du groupe ci-dessous à dessein : `gallery.guest` refuse un compte banni,
+// qui ne pourrait donc plus se déconnecter — sa session et son cookie de
+// reconnexion survivraient au bannissement. Être authentifié suffit ici.
+Route::post('gallery/logout', [GalleryAuthController::class, 'logout'])
+    ->middleware('auth:sanctum');
+
 Route::middleware(['auth:sanctum', 'gallery.guest', 'remember.rotate'])->prefix('gallery')->group(function () {
     Route::get('me', [GalleryAuthController::class, 'me']);
-    Route::post('logout', [GalleryAuthController::class, 'logout']);
 
     Route::get('photos', [GalleryPhotoController::class, 'index']);
     Route::post('photos', [GalleryPhotoController::class, 'store'])

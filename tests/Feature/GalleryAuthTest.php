@@ -242,6 +242,28 @@ class GalleryAuthTest extends TestCase
         $this->getJson('/api/gallery/me')->assertForbidden();
     }
 
+    /**
+     * `gallery.guest` refuse un compte banni : tant que la déconnexion vivait
+     * dans ce groupe, un invité banni ne pouvait plus se déconnecter, et sa
+     * session comme son cookie de reconnexion survivaient au bannissement.
+     */
+    public function test_a_banned_guest_can_still_log_out(): void
+    {
+        $this->register();
+        Auth::forgetGuards();
+
+        User::where('email', 'camille@exemple.com')->sole()
+            ->forceFill(['banned_at' => now()])->save();
+
+        Auth::forgetGuards();
+
+        $this->postJson('/api/gallery/logout')->assertOk();
+
+        Auth::forgetGuards();
+
+        $this->getJson('/api/gallery/me')->assertUnauthorized();
+    }
+
     public function test_a_guest_cannot_use_the_admin_api(): void
     {
         $this->register();
