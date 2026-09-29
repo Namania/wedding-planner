@@ -15,38 +15,21 @@ const appUrl = (import.meta.env.VITE_API_BASE_URL as string).replace(/\/api\/?$/
 let instance: Echo<'reverb'> | null = null
 
 /**
- * Autorise un canal, avec le même rejeu qu'un 419 sur `galleryClient` : le
- * socket peut se reconnecter après une longue inactivité (téléphone en
- * veille), avec un jeton CSRF déjà périmé. Sans ce rafraîchissement, la
- * reconnexion échouerait silencieusement et les photos cesseraient d'arriver
- * en direct jusqu'au rechargement de la page.
+ * Autorise un canal. Aucun rejeu sur 419 ici, contrairement à
+ * `galleryClient` : `broadcasting/auth` est exemptée de la vérification CSRF
+ * (voir `validateCsrfTokens(except:)` dans bootstrap/app.php), cette route ne
+ * peut donc pas répondre 419.
+ *
+ * Le mode de panne réel de la réautorisation après le réveil du téléphone est
+ * un 403 — la session de cinq minutes a expiré — et il n'est pas traité ici :
+ * les photos cessent d'arriver en direct jusqu'au rechargement de la page.
  */
-function authorizeChannel(
-    channelName: string,
-    socketId: string,
-    retried = false
-): Promise<AxiosResponse> {
-    return axios
-        .post(
-            `${appUrl}/broadcasting/auth`,
-            { socket_id: socketId, channel_name: channelName },
-            { withCredentials: true, withXSRFToken: true }
-        )
-        .catch(async (error: unknown) => {
-            if (retried || !axios.isAxiosError(error) || error.response?.status !== 419) {
-                throw error
-            }
-
-            try {
-                await axios.get(`${appUrl}/sanctum/csrf-cookie`, { withCredentials: true, withXSRFToken: true })
-            } catch {
-                // Le rafraîchissement a échoué : on propage la 419 d'origine.
-                throw error
-            }
-
-            // Hors du try : une erreur du rejeu doit remonter telle quelle.
-            return authorizeChannel(channelName, socketId, true)
-        })
+function authorizeChannel(channelName: string, socketId: string): Promise<AxiosResponse> {
+    return axios.post(
+        `${appUrl}/broadcasting/auth`,
+        { socket_id: socketId, channel_name: channelName },
+        { withCredentials: true, withXSRFToken: true }
+    )
 }
 
 export function getGalleryEcho(): Echo<'reverb'> {
