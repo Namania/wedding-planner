@@ -81,6 +81,17 @@ class TwoFactorAuthTest extends TestCase
         $this->assertGuest();
     }
 
+    /**
+     * Même normalisation que du côté invité : l'unicité de l'email traverse
+     * les deux rôles, la recherche doit donc l'être aussi.
+     */
+    public function test_login_finds_the_account_whatever_the_case_of_the_email(): void
+    {
+        $this->login(['email' => 'Admin@Exemple.COM'])
+            ->assertOk()
+            ->assertJsonPath('two_factor', 'setup_required');
+    }
+
     public function test_login_never_opens_a_session_without_the_second_factor(): void
     {
         $this->login()->assertOk();

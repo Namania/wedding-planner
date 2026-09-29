@@ -49,6 +49,29 @@ class User extends Authenticatable
 
     public const ROLE_GUEST = 'guest';
 
+    /**
+     * Forme canonique d'une adresse, celle qui est stockée et celle sur
+     * laquelle on cherche.
+     *
+     * Postgres compare les chaînes en respectant la casse. Sans cette
+     * normalisation, un invité qui s'inscrit depuis son téléphone avec
+     * `Camille@Exemple.com` — l'autocapitalisation mobile est la norme — et
+     * retape `camille@exemple.com` plus tard reçoit « Adresse ou mot de passe
+     * incorrect », indiscernable d'un mauvais mot de passe ; sans envoi de
+     * mail, son seul recours est d'aller déranger les mariés. Elle est aussi
+     * ce qui fait tenir l'unicité de l'email à travers les deux rôles, voulue
+     * par la spec : sinon `Maries@exemple.com` en invité et
+     * `maries@exemple.com` en administrateur coexisteraient.
+     *
+     * Une valeur qui n'est pas une chaîne devient une chaîne vide plutôt que
+     * de faire échouer l'appel : la validation qui suit la rejettera, et les
+     * clés de limitation de débit indexées là-dessus restent calculables.
+     */
+    public static function normalizeEmail(mixed $email): string
+    {
+        return is_string($email) ? mb_strtolower(trim($email)) : '';
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === self::ROLE_ADMIN;

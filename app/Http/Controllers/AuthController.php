@@ -41,6 +41,11 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
+        // Même normalisation que pour les invités : l'unicité de l'email
+        // traverse les deux rôles, la recherche doit donc être insensible à la
+        // casse des deux côtés.
+        $credentials['email'] = User::normalizeEmail($credentials['email']);
+
         // validate() vérifie le mot de passe sans ouvrir de session, contrairement
         // à attempt() qui connecterait l'utilisateur avant le second facteur.
         // Garde explicitement 'web' : si une requête précédente est passée par

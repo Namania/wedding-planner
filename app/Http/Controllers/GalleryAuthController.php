@@ -68,6 +68,12 @@ class GalleryAuthController extends Controller
     )]
     public function register(Request $request)
     {
+        // Avant la validation, et pas après : `unique:users,email` cherche la
+        // valeur telle qu'elle est envoyée. Normalisée seulement ensuite, une
+        // adresse en capitales passerait la règle d'unicité puis heurterait
+        // l'index unique de la table à l'insertion.
+        $request->merge(['email' => User::normalizeEmail($request->input('email'))]);
+
         $data = $request->validate([
             'token' => ['required', 'string'],
             'name' => ['required', 'string', 'min:2', 'max:40'],
@@ -126,7 +132,7 @@ class GalleryAuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $guest = User::where('email', $data['email'])->first();
+        $guest = User::where('email', User::normalizeEmail($data['email']))->first();
 
         // Un même message pour toutes les causes : compte inexistant, mot de
         // passe faux, compte d'administration ou compte banni. Les distinguer

@@ -113,6 +113,53 @@ class GalleryAuthTest extends TestCase
             ->assertJsonValidationErrors('email');
     }
 
+    /**
+     * L'autocapitalisation des claviers mobiles est la norme : l'invité qui
+     * s'inscrit avec `Camille@Exemple.com` doit retrouver son compte quelle que
+     * soit la casse qu'il retape ensuite. Sans normalisation, Postgres en fait
+     * deux adresses distinctes et le message d'erreur est indiscernable d'un
+     * mauvais mot de passe — sans envoi de mail, plus aucun recours.
+     */
+    public function test_an_email_is_stored_and_found_whatever_its_case(): void
+    {
+        $this->register(['email' => 'Camille@Exemple.COM'])->assertCreated();
+
+        $this->assertDatabaseHas('users', ['email' => 'camille@exemple.com']);
+
+        $this->flushSession();
+        Auth::forgetGuards();
+
+        $this->postJson('/api/gallery/login', [
+            'email' => 'camille@exemple.com',
+            'password' => 'motdepasse',
+        ])->assertOk();
+
+        $this->flushSession();
+        Auth::forgetGuards();
+
+        $this->postJson('/api/gallery/login', [
+            'email' => '  CAMILLE@exemple.com ',
+            'password' => 'motdepasse',
+        ])->assertOk();
+    }
+
+    /**
+     * L'unicité de l'email traverse les deux rôles (spec) : elle ne tiendrait
+     * pas si une différence de casse suffisait à créer un second compte sur la
+     * même adresse — celle des mariés, par exemple.
+     */
+    public function test_registration_rejects_an_email_already_taken_in_another_case(): void
+    {
+        User::factory()->create(['email' => 'maries@exemple.com']);
+
+        $this->register(['email' => 'Maries@Exemple.com'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('email');
+
+        $this->assertSame(1, User::where('email', 'maries@exemple.com')->count());
+        $this->assertSame(0, User::where('role', User::ROLE_GUEST)->count());
+    }
+
     public function test_registration_requires_a_password_of_eight_characters(): void
     {
         $this->register(['password' => 'court'])

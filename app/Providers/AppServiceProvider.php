@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -39,7 +40,7 @@ class AppServiceProvider extends ServiceProvider
     {
         RateLimiter::for('admin-login', fn (Request $request) => [
             Limit::perMinute(5)->by('al|'.$request->ip()),
-            Limit::perMinute(10)->by('ale|'.mb_strtolower((string) $request->input('email'))),
+            Limit::perMinute(10)->by('ale|'.User::normalizeEmail($request->input('email'))),
         ]);
 
         // Un code à 6 chiffres est devinable par force brute : on limite aussi
@@ -74,7 +75,7 @@ class AppServiceProvider extends ServiceProvider
         // seau en plafond global pour l'application entière.
         RateLimiter::for('gallery-login', fn (Request $request) => [
             Limit::perMinute(5)->by('gl|'.$request->ip()),
-            Limit::perMinute(10)->by('gle|'.mb_strtolower((string) $request->input('email'))),
+            Limit::perMinute(10)->by('gle|'.User::normalizeEmail($request->input('email'))),
         ]);
 
         RateLimiter::for('gallery-upload', fn (Request $request) => Limit::perMinutes(10, 30)->by('gu|'.($request->user()?->getKey() ?? $request->ip())));
