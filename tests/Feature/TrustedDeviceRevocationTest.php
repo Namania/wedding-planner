@@ -5,8 +5,13 @@ namespace Tests\Feature;
 use App\Models\TwoFactorTrustedDevice;
 use App\Models\User;
 use App\Services\TrustedDeviceRegistry;
+use Illuminate\Auth\SessionGuard;
+use Illuminate\Cookie\CookieValuePrefix;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class TrustedDeviceRevocationTest extends TestCase
@@ -40,6 +45,19 @@ class TrustedDeviceRevocationTest extends TestCase
         // en clair. Les tests l'envoient donc avec withCookie, qui le chiffre
         // comme le ferait un vrai navigateur ayant reçu la réponse.
         return app(TrustedDeviceRegistry::class)->issueFor($this->user, $request)->getValue();
+    }
+
+    /** Une session déjà ouverte depuis un autre navigateur. */
+    private function insertSession(string $id, int $userId): void
+    {
+        DB::table('sessions')->insert([
+            'id' => $id,
+            'user_id' => $userId,
+            'ip_address' => '203.0.113.9',
+            'user_agent' => 'Mozilla/5.0',
+            'payload' => base64_encode(serialize([])),
+            'last_activity' => now()->timestamp,
+        ]);
     }
 
     public function test_it_lists_the_devices_and_marks_the_current_one(): void
@@ -148,6 +166,90 @@ class TrustedDeviceRevocationTest extends TestCase
         $this->assertNotNull($newToken);
         $this->assertNotSame($previousToken, $newToken);
         $this->assertSame(60, strlen($newToken));
+    }
+
+    /**
+     * L'écran promet « vous serez déconnecté·e des autres appareils » : il
+     * faut donc que les sessions déjà ouvertes ailleurs disparaissent pour de
+     * bon, et que celle d'où part la demande continue de fonctionner — sinon
+     * la personne qui vient de perdre son téléphone se punirait elle-même.
+     */
+    public function test_revoking_every_device_closes_the_other_sessions_but_keeps_the_current_one(): void
+    {
+        // Seul le driver `database` relie une session à son compte, et c'est
+        // celui de la production ; la suite de tests tourne par défaut sur
+        // `array`, qui n'a rien à balayer.
+        config(['session.driver' => 'database']);
+
+        $this->issueDevice();
+
+        $other = User::create([
+            'name' => 'Autre',
+            'email' => 'autre@exemple.com',
+            'password' => 'password',
+        ]);
+
+        $this->insertSession('session-autre-appareil', $this->user->getKey());
+        $this->insertSession('session-autre-compte', $other->getKey());
+
+        $response = $this->actingAs($this->user)
+            ->withCredentials()
+            ->deleteJson('/api/two-factor/devices')
+            ->assertOk();
+
+        // La session de l'appareil perdu est fermée…
+        $this->assertDatabaseMissing('sessions', ['id' => 'session-autre-appareil']);
+        // … et on n'a pas balayé au-delà du compte concerné.
+        $this->assertDatabaseHas('sessions', ['id' => 'session-autre-compte']);
+
+        $this->assertNotNull($this->user->fresh()->getRememberToken());
+
+        // La session courante, elle, vit toujours : on rejoue son cookie sur
+        // une requête authentifiée. withUnencryptedCookie parce que la valeur
+        // sortante est déjà la charge chiffrée par EncryptCookies.
+        $sessionCookie = collect($response->headers->getCookies())
+            ->first(fn ($c) => $c->getName() === config('session.cookie'));
+
+        $this->assertNotNull($sessionCookie, 'La réponse doit reposer le cookie de session courant.');
+
+        // forgetGuards + flushSession : sans ça, la requête suivante verrait
+        // l'utilisateur déjà résolu par actingAs et ne prouverait rien.
+        Auth::forgetGuards();
+        $this->flushSession();
+
+        $this->withUnencryptedCookie(config('session.cookie'), $sessionCookie->getValue())
+            ->withCredentials()
+            ->getJson('/api/user')
+            ->assertOk()
+            ->assertJsonPath('email', 'admin@exemple.com');
+    }
+
+    /**
+     * Le cookie « remember me » de l'appareil courant doit être réémis : la
+     * rotation du jeton vient de tuer tous les cookies existants, le sien
+     * compris.
+     */
+    public function test_revoking_every_device_reissues_the_remember_cookie_of_the_current_one(): void
+    {
+        $this->issueDevice();
+
+        $response = $this->actingAs($this->user)
+            ->withCredentials()
+            ->deleteJson('/api/two-factor/devices')
+            ->assertOk();
+
+        $reissued = collect($response->headers->getCookies())
+            ->first(fn ($c) => $c->getName() === 'remember_web_'.sha1(SessionGuard::class));
+
+        $this->assertNotNull($reissued, 'La réponse doit réémettre le cookie remember de cet appareil.');
+
+        $plain = CookieValuePrefix::remove(Crypt::decrypt($reissued->getValue(), false));
+
+        $this->assertStringContainsString(
+            $this->user->fresh()->getRememberToken(),
+            $plain,
+            'Le cookie réémis doit porter le nouveau jeton.',
+        );
     }
 
     /**

@@ -19,8 +19,9 @@
 
         <p v-if="hasDevices" class="text-xs text-amber-600 dark:text-amber-500 flex items-start gap-1.5">
             <i class="pi pi-exclamation-triangle mt-0.5 shrink-0"></i>
-            <span>« Tout révoquer » vous déconnecte réellement, sur tous les appareils — y compris celui-ci. Il
-                faudra vous reconnecter partout.</span>
+            <span>« Tout révoquer » ferme les sessions ouvertes sur les autres appareils et retire la confiance
+                à tous, celui-ci compris. Vous restez connecté·e ici, mais un code de vérification vous sera
+                redemandé à votre prochaine connexion.</span>
         </p>
 
         <div v-if="isLoading" class="space-y-2">
@@ -92,11 +93,11 @@ const loadError = ref('')
 const actionError = ref('')
 
 // Un seul appareil suffit pour justifier « Tout révoquer » : c'est la seule
-// action qui coupe réellement la session en cours, y compris quand il n'y a
-// qu'une ligne à révoquer (ex : on a perdu son unique appareil de confiance
-// et on se reconnecte depuis ailleurs pour couper l'accès). Un seul calcul
-// pour le bouton et le bandeau d'avertissement, afin qu'ils ne puissent pas
-// se désynchroniser.
+// action qui ferme aussi les sessions ouvertes ailleurs, y compris quand il
+// n'y a qu'une ligne à révoquer (ex : on a perdu son unique appareil de
+// confiance et on se reconnecte depuis ailleurs pour couper l'accès). Un seul
+// calcul pour le bouton et le bandeau d'avertissement, afin qu'ils ne puissent
+// pas se désynchroniser.
 const hasDevices = computed(() => devices.value.length > 0)
 
 const formatDate = (value: string | null): string => {
@@ -157,13 +158,17 @@ const revokeAll = async () => {
     }
 }
 
-// « Tout révoquer » fait tourner le jeton de reconnexion côté serveur : ça
-// déconnecte réellement toutes les sessions, y compris celle en cours sur cet
-// appareil. On le confirme explicitement avant d'agir.
+// « Tout révoquer » ferme côté serveur les sessions des autres appareils et
+// fait tourner le jeton de reconnexion, ce qui invalide leurs cookies. La
+// session courante, elle, est préservée : c'est le comportement standard
+// « déconnecter les autres appareils », et la personne qui vient de perdre son
+// téléphone n'a pas à se punir elle-même. On confirme quand même : l'action
+// retire la confiance à tous les appareils, celui-ci compris.
 const confirmRevokeAll = (event: Event) => {
     confirm.require({
         target: event.currentTarget as HTMLElement,
-        message: 'Vous allez être déconnecté·e de tous les appareils, y compris celui-ci. Il faudra vous reconnecter partout. Continuer ?',
+        message:
+            'Les autres appareils seront déconnectés et tous perdront leur statut de confiance, celui-ci compris. Vous restez connecté·e ici, avec un code de vérification à saisir à votre prochaine connexion. Continuer ?',
         icon: 'pi pi-exclamation-triangle',
         rejectProps: { label: 'Annuler', severity: 'secondary', outlined: true },
         acceptProps: { label: 'Tout révoquer', severity: 'danger' },
