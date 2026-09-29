@@ -2,8 +2,10 @@
 
 namespace App\Console\Commands;
 
+use App\Models\TwoFactorTrustedDevice;
 use App\Models\User;
 use Illuminate\Console\Command;
+use Illuminate\Support\Str;
 
 class DisableTwoFactor extends Command
 {
@@ -21,13 +23,30 @@ class DisableTwoFactor extends Command
             return self::FAILURE;
         }
 
+        $devices = TwoFactorTrustedDevice::query()
+            ->where('user_id', $user->getAuthIdentifier())
+            ->delete();
+
+        // Effacer le seul secret ne suffirait pas : login() teste l'appareil de
+        // confiance AVANT hasTwoFactorEnabled(), donc un navigateur qui porte
+        // encore un cookie `trusted_device` valide ouvrirait directement une
+        // session, sur un compte désormais sans second facteur — durablement et
+        // sans le moindre signal. Cette commande étant le filet de sécurité du
+        // projet (téléphone perdu, compte peut-être compromis), elle coupe tout :
+        // le secret, les appareils de confiance, et le jeton « remember me » qui
+        // rouvrirait seul les sessions pendant une semaine.
         $user->forceFill([
             'two_factor_secret' => null,
             'two_factor_confirmed_at' => null,
+            'remember_token' => Str::random(60),
         ])->save();
 
         $this->info("Double authentification désactivée pour {$user->email}.");
-        $this->line('Un nouvel enrôlement sera demandé à la prochaine connexion.');
+        $this->line(sprintf(
+            '%d appareil(s) de confiance révoqué(s) et jeton de reconnexion renouvelé : toutes les reconnexions silencieuses sont coupées.',
+            $devices,
+        ));
+        $this->line('Un nouvel enrôlement sera demandé à la prochaine connexion, depuis n\'importe quel appareil.');
 
         return self::SUCCESS;
     }

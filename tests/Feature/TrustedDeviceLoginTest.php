@@ -165,6 +165,36 @@ class TrustedDeviceLoginTest extends TestCase
         $this->assertTrue(TwoFactorTrustedDevice::sole()->last_used_at->gt(now()->subMinute()));
     }
 
+    /**
+     * `user:disable-2fa` est le filet de sécurité du projet : téléphone perdu,
+     * compte peut-être compromis. Effacer le seul secret ne suffirait pas —
+     * login() teste l'appareil de confiance AVANT hasTwoFactorEnabled(), donc
+     * un navigateur portant encore un cookie valide rouvrirait une session sur
+     * un compte désormais dépourvu de second facteur.
+     */
+    public function test_disabling_two_factor_revokes_the_trusted_devices_and_the_remember_token(): void
+    {
+        $token = $this->loginAndTrustDevice();
+
+        $rememberBefore = $this->user->fresh()->getRememberToken();
+        $this->assertNotNull($rememberBefore);
+
+        $this->artisan('user:disable-2fa', ['email' => 'admin@exemple.com'])
+            ->assertSuccessful();
+
+        $this->assertSame(0, TwoFactorTrustedDevice::count());
+        $this->assertNotSame($rememberBefore, $this->user->fresh()->getRememberToken());
+
+        $this->flushSession();
+        Auth::forgetGuards();
+
+        $this->withUnencryptedCookie(TrustedDeviceRegistry::COOKIE, $token)
+            ->withCredentials()
+            ->postJson('/api/login', ['email' => 'admin@exemple.com', 'password' => 'password'])
+            ->assertOk()
+            ->assertJsonPath('two_factor', 'setup_required');
+    }
+
     public function test_not_asking_to_trust_the_device_records_nothing(): void
     {
         $token = $this->login()->json('challenge_token');
