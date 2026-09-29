@@ -148,7 +148,7 @@ class GalleryAuthController extends Controller
         summary: "Profil de l'invité connecté",
         tags: ['Gallery'],
         responses: [
-            new OA\Response(response: 200, description: 'Profil', content: new OA\JsonContent(ref: '#/components/schemas/GalleryGuest')),
+            new OA\Response(response: 200, description: 'Profil', content: new OA\JsonContent(ref: '#/components/schemas/GalleryAccount')),
             new OA\Response(response: 401, description: 'Non authentifié'),
         ]
     )]

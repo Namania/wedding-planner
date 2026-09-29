@@ -78,7 +78,7 @@ class GalleryAdminController extends Controller
         summary: 'Liste des comptes invités de la galerie',
         tags: ['GalleryAdmin'],
         responses: [
-            new OA\Response(response: 200, description: 'Comptes invités', content: new OA\JsonContent(type: 'array', items: new OA\Items(ref: '#/components/schemas/GalleryGuest'))),
+            new OA\Response(response: 200, description: 'Comptes invités', content: new OA\JsonContent(type: 'array', items: new OA\Items(ref: '#/components/schemas/GalleryAccount'))),
         ]
     )]
     public function guests()
@@ -96,7 +96,7 @@ class GalleryAdminController extends Controller
             new OA\Parameter(name: 'guest', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
         ],
         responses: [
-            new OA\Response(response: 200, description: 'Invité banni', content: new OA\JsonContent(ref: '#/components/schemas/GalleryGuest')),
+            new OA\Response(response: 200, description: 'Invité banni', content: new OA\JsonContent(ref: '#/components/schemas/GalleryAccount')),
             new OA\Response(response: 404, description: "Ce compte n'est pas un invité"),
         ]
     )]
@@ -122,7 +122,7 @@ class GalleryAdminController extends Controller
             new OA\Parameter(name: 'guest', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
         ],
         responses: [
-            new OA\Response(response: 200, description: 'Invité débanni', content: new OA\JsonContent(ref: '#/components/schemas/GalleryGuest')),
+            new OA\Response(response: 200, description: 'Invité débanni', content: new OA\JsonContent(ref: '#/components/schemas/GalleryAccount')),
             new OA\Response(response: 404, description: "Ce compte n'est pas un invité"),
         ]
     )]
