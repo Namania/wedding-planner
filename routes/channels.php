@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\GalleryGuest;
 use App\Models\User;
 use Illuminate\Support\Facades\Broadcast;
 
@@ -9,10 +8,10 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 });
 
 Broadcast::channel('wedding', function ($user) {
-    return $user instanceof User;
+    return $user instanceof User && $user->isAdmin();
 });
 
 Broadcast::channel('gallery', function ($user) {
     return $user instanceof User
-        || ($user instanceof GalleryGuest && ! $user->isBanned());
-}, ['guards' => ['web', 'sanctum']]);
+        && ($user->isAdmin() || ! $user->isBanned());
+}, ['guards' => ['web']]);

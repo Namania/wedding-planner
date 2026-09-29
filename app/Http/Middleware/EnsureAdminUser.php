@@ -11,7 +11,11 @@ class EnsureAdminUser
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (! $request->user() instanceof User) {
+        $user = $request->user();
+
+        // Le test portait sur le type de l'objet authentifié. Depuis que les
+        // invités sont eux aussi des User, seul le rôle distingue les deux.
+        if (! $user instanceof User || ! $user->isAdmin()) {
             abort(403, 'Réservé aux administrateurs.');
         }
 
