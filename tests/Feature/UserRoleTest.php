@@ -68,6 +68,24 @@ class UserRoleTest extends TestCase
         $this->assertTrue(User::factory()->create()->requiresTwoFactor());
     }
 
+    /**
+     * `role` décide de tout ce qu'un compte peut faire : il ne doit jamais
+     * pouvoir arriver par une charge utile de requête. Un futur
+     * `User::create($request->validated())` donnerait sinon l'administration
+     * du mariage à qui glisserait `role` dans son formulaire.
+     */
+    public function test_the_role_is_not_mass_assignable(): void
+    {
+        $user = new User([
+            'name' => 'Curieux',
+            'email' => 'curieux@exemple.com',
+            'password' => 'password',
+            'role' => User::ROLE_ADMIN,
+        ]);
+
+        $this->assertNull($user->role);
+    }
+
     public function test_the_role_has_no_default(): void
     {
         // Un compte créé sans rôle explicite doit échouer plutôt que de

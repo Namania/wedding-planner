@@ -105,7 +105,7 @@ class GalleryAdminController extends Controller
         $this->assertGuest($guest);
 
         // update() ignorerait banned_at en silence : #[Fillable] sur User ne
-        // liste que name/email/password/role, à dessein (tâche 1).
+        // liste que name/email/password, à dessein (tâche 1).
         $guest->forceFill(['banned_at' => now()])->save();
 
         $guest->photos()->whereNull('hidden_at')->get()

@@ -93,14 +93,18 @@ class GalleryAuthController extends Controller
             ]);
         }
 
-        $guest = User::create([
+        $guest = new User([
             'name' => trim($data['name']),
             'email' => $data['email'],
             'password' => $data['password'],
-            'role' => User::ROLE_GUEST,
         ]);
 
-        $guest->forceFill(['last_seen_at' => now()])->save();
+        // `role` n'est pas assignable en masse, pas plus que `banned_at` : il
+        // se pose ici, explicitement, sur la seule route qui crée un invité.
+        $guest->forceFill([
+            'role' => User::ROLE_GUEST,
+            'last_seen_at' => now(),
+        ])->save();
 
         return $this->openSession($request, $guest, 201);
     }

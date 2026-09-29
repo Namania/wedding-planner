@@ -12,7 +12,12 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'email', 'password', 'role'])]
+// `role` et `banned_at` sont délibérément hors de cette liste : ce sont les
+// deux attributs qui décident de ce qu'un compte a le droit de faire. Les y
+// laisser suffirait à ce qu'un futur `User::create($request->validated())`
+// portant `role` dans sa charge utile offre l'administration du mariage.
+// On les pose par `forceFill()`, explicitement, là où c'est voulu.
+#[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret'])]
 class User extends Authenticatable
 {
