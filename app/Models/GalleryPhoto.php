@@ -17,7 +17,7 @@ class GalleryPhoto extends Model
     use HasFactory;
 
     protected $fillable = [
-        'gallery_guest_id',
+        'user_id',
         'path',
         'thumb_path',
         'width',
@@ -41,9 +41,13 @@ class GalleryPhoto extends Model
         });
     }
 
+    /**
+     * L'invité qui a envoyé la photo. La relation garde son nom : c'est bien
+     * d'un invité qu'il s'agit, même si le modèle est désormais User.
+     */
     public function guest(): BelongsTo
     {
-        return $this->belongsTo(GalleryGuest::class, 'gallery_guest_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function scopeVisible(Builder $query): Builder

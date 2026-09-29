@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\GalleryGuest;
 use App\Models\GalleryPhoto;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -17,7 +17,7 @@ class GalleryPhotoFactory extends Factory
         $name = Str::uuid()->toString();
 
         return [
-            'gallery_guest_id' => GalleryGuest::factory(),
+            'user_id' => User::factory()->guest(),
             'path' => "gallery/2028/01/{$name}.jpg",
             'thumb_path' => "gallery/2028/01/{$name}_thumb.jpg",
             'width' => 2560,

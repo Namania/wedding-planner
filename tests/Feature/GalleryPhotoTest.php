@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\GalleryGuest;
 use App\Models\GalleryPhoto;
 use App\Models\GallerySettings;
 use App\Models\User;
@@ -27,7 +26,7 @@ class GalleryPhotoTest extends TestCase
 
     public function test_gallery_index_only_returns_visible_photos(): void
     {
-        $guest = GalleryGuest::factory()->create();
+        $guest = User::factory()->guest()->create();
         GalleryPhoto::factory()->for($guest, 'guest')->count(2)->create();
         GalleryPhoto::factory()->for($guest, 'guest')->hidden()->create();
 
@@ -46,7 +45,7 @@ class GalleryPhotoTest extends TestCase
     #[RequiresPhpExtension('gd')]
     public function test_guest_can_upload_a_photo(): void
     {
-        $guest = GalleryGuest::factory()->create();
+        $guest = User::factory()->guest()->create();
         Sanctum::actingAs($guest);
 
         $response = $this->postJson('/api/gallery/photos', [
@@ -70,7 +69,7 @@ class GalleryPhotoTest extends TestCase
     {
         GallerySettings::current()->update(['max_photos_per_guest' => 1]);
 
-        $guest = GalleryGuest::factory()->create();
+        $guest = User::factory()->guest()->create();
         GalleryPhoto::factory()->for($guest, 'guest')->create();
 
         Sanctum::actingAs($guest);
@@ -82,7 +81,7 @@ class GalleryPhotoTest extends TestCase
 
     public function test_upload_rejects_non_image_files(): void
     {
-        Sanctum::actingAs(GalleryGuest::factory()->create());
+        Sanctum::actingAs(User::factory()->guest()->create());
 
         $this->postJson('/api/gallery/photos', [
             'photo' => UploadedFile::fake()->create('malware.php', 100, 'text/php'),
@@ -91,8 +90,8 @@ class GalleryPhotoTest extends TestCase
 
     public function test_guest_can_only_delete_own_photos(): void
     {
-        $owner = GalleryGuest::factory()->create();
-        $other = GalleryGuest::factory()->create();
+        $owner = User::factory()->guest()->create();
+        $other = User::factory()->guest()->create();
         $photo = GalleryPhoto::factory()->for($owner, 'guest')->create();
 
         Sanctum::actingAs($other);
@@ -120,13 +119,13 @@ class GalleryPhotoTest extends TestCase
             ->assertOk()
             ->assertJsonPath('hidden', true);
 
-        Sanctum::actingAs(GalleryGuest::factory()->create());
+        Sanctum::actingAs(User::factory()->guest()->create());
         $this->getJson('/api/gallery/photos')->assertOk()->assertJsonCount(0, 'data');
     }
 
     public function test_banning_guest_hides_all_their_photos(): void
     {
-        $guest = GalleryGuest::factory()->create();
+        $guest = User::factory()->guest()->create();
         GalleryPhoto::factory()->for($guest, 'guest')->count(3)->create();
 
         Sanctum::actingAs(User::factory()->create());

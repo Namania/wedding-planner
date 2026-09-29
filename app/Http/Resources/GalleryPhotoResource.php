@@ -31,7 +31,7 @@ class GalleryPhotoResource extends JsonResource
 
         return [
             'id' => $this->id,
-            'guest_id' => $this->gallery_guest_id,
+            'guest_id' => $this->user_id,
             'guest_name' => $this->guest?->name,
             'caption' => $this->caption,
             'width' => $this->width,

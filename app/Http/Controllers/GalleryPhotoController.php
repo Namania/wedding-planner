@@ -109,7 +109,7 @@ class GalleryPhotoController extends Controller
     )]
     public function destroy(Request $request, GalleryPhoto $photo)
     {
-        abort_unless($photo->gallery_guest_id === $request->user()->id, 403);
+        abort_unless($photo->user_id === $request->user()->id, 403);
 
         $photo->delete();
 

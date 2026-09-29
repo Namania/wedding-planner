@@ -41,8 +41,12 @@ class GalleryGuest extends Authenticatable
         return $this->banned_at !== null;
     }
 
+    /**
+     * La tâche 2 a renommé la colonne en `user_id` (les photos appartiennent
+     * désormais à un compte) : la convention par défaut ne suffit plus.
+     */
     public function photos(): HasMany
     {
-        return $this->hasMany(GalleryPhoto::class);
+        return $this->hasMany(GalleryPhoto::class, 'user_id');
     }
 }
