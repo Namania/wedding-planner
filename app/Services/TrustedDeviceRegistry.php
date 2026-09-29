@@ -41,9 +41,15 @@ class TrustedDeviceRegistry
         return cookie(self::COOKIE, $token, $days * 24 * 60);
     }
 
-    public function findValidFor(Authenticatable $user, ?string $token): ?TwoFactorTrustedDevice
+    /**
+     * @param  mixed  $token  Typé large à dessein : hors requête stateful pour
+     *                        Sanctum, EncryptCookies n'est pas dans le pipeline
+     *                        et un en-tête `Cookie: trusted_device[x]=y` serait
+     *                        parsé par PHP en tableau plutôt qu'en chaîne.
+     */
+    public function findValidFor(Authenticatable $user, mixed $token): ?TwoFactorTrustedDevice
     {
-        if ($token === null || $token === '') {
+        if (! is_string($token) || $token === '') {
             return null;
         }
 

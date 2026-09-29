@@ -43,7 +43,10 @@ class AuthController extends Controller
 
         // validate() vérifie le mot de passe sans ouvrir de session, contrairement
         // à attempt() qui connecterait l'utilisateur avant le second facteur.
-        if (! Auth::validate($credentials)) {
+        // Garde explicitement 'web' : si une requête précédente est passée par
+        // auth:sanctum, Authenticate::authenticate() a basculé la garde par
+        // défaut sur 'sanctum' via shouldUse() (voir RotateRememberToken).
+        if (! Auth::guard('web')->validate($credentials)) {
             throw ValidationException::withMessages([
                 'email' => ['Les identifiants sont incorrects.'],
             ]);
@@ -53,8 +56,10 @@ class AuthController extends Controller
 
         // Un appareil de confiance dispense du second facteur, jamais du mot de
         // passe : on n'arrive ici qu'une fois celui-ci vérifié. Un cookie forgé
-        // ou illisible est écarté par EncryptCookies, qui le retire de la
-        // requête ; findValidFor reçoit alors null et on repart sur le TOTP.
+        // ou illisible est écarté par EncryptCookies — mais seulement pour les
+        // requêtes venant d'un domaine déclaré stateful auprès de Sanctum ;
+        // ailleurs, findValidFor() se protège lui-même contre une valeur qui ne
+        // serait pas une chaîne. Dans les deux cas on repart sur le TOTP.
         $device = $this->devices->findValidFor($user, $request->cookie(TrustedDeviceRegistry::COOKIE));
 
         if ($device !== null) {

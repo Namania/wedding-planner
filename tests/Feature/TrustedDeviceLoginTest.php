@@ -96,10 +96,36 @@ class TrustedDeviceLoginTest extends TestCase
             ->withCredentials()
             ->postJson('/api/login', ['email' => 'admin@exemple.com', 'password' => 'mauvais'])
             ->assertStatus(422);
+
+        // Le 422 seul ne prouve pas qu'aucune session n'a été ouverte au
+        // passage : on vérifie explicitement qu'aucun utilisateur n'est
+        // authentifié après ce refus.
+        //
+        // forgetGuards() : la garde 'web' résolue par loginAndTrustDevice()
+        // plus haut garde son utilisateur en cache dans le conteneur, partagé
+        // par toutes les requêtes de ce test. flushSession() vide les données
+        // de session mais pas ce cache d'instance ; sans le vider aussi, la
+        // requête suivante verrait cet utilisateur encore authentifié quel
+        // que soit l'état réel de la session.
+        Auth::forgetGuards();
+
+        $this->withCredentials()
+            ->getJson('/api/user')
+            ->assertStatus(401);
     }
 
     public function test_a_forged_cookie_falls_back_to_the_totp_step(): void
     {
+        // Un appareil valide doit exister en base : sinon findValidFor()
+        // n'aurait rien trouvé quelle que soit la valeur du cookie, et le test
+        // passerait à l'identique même si EncryptCookies était absent du
+        // pipeline. En rejouant un cookie corrompu à la place du vrai, on
+        // prouve que c'est bien le déchiffrement qui échoue, pas l'absence
+        // d'appareil enregistré.
+        $this->loginAndTrustDevice();
+
+        $this->flushSession();
+
         $this->withUnencryptedCookie(TrustedDeviceRegistry::COOKIE, 'cookie-forgé-au-hasard')
             ->withCredentials()
             ->postJson('/api/login', ['email' => 'admin@exemple.com', 'password' => 'password'])
@@ -151,6 +177,33 @@ class TrustedDeviceLoginTest extends TestCase
         $this->assertSame(0, TwoFactorTrustedDevice::count());
     }
 
+    /** Le chemin que tout nouvel admin emprunte : premier enrôlement TOTP. */
+    public function test_trusting_the_device_during_first_enrolment_records_it(): void
+    {
+        $fresh = User::create([
+            'name' => 'Nouveau',
+            'email' => 'nouveau@exemple.com',
+            'password' => 'password',
+        ]);
+
+        $login = $this->postJson('/api/login', [
+            'email' => 'nouveau@exemple.com',
+            'password' => 'password',
+        ])->assertOk()->assertJsonPath('two_factor', 'setup_required');
+
+        $response = $this->postJson('/api/two-factor-setup', [
+            'challenge_token' => $login->json('challenge_token'),
+            'code' => TOTP::createFromSecret($login->json('secret'))->now(),
+            'trust_device' => true,
+        ])->assertOk();
+
+        $cookie = collect($response->headers->getCookies())
+            ->first(fn ($c) => $c->getName() === TrustedDeviceRegistry::COOKIE);
+
+        $this->assertNotNull($cookie, 'Aucun cookie d\'appareil de confiance posé lors du premier enrôlement.');
+        $this->assertSame(1, TwoFactorTrustedDevice::query()->where('user_id', $fresh->id)->count());
+    }
+
     public function test_every_account_currently_requires_the_second_factor(): void
     {
         $fresh = User::create([
@@ -176,17 +229,6 @@ class TrustedDeviceLoginTest extends TestCase
         $token = $this->loginAndTrustDevice();
 
         $this->postJson('/api/logout')->assertOk();
-
-        // Le middleware auth:sanctum de /api/logout authentifie via la garde
-        // 'sanctum', et Authenticate::authenticate() en fait la garde par
-        // défaut via Auth::shouldUse() — ce qui réécrit aussi
-        // auth.defaults.guard dans le conteneur. En production chaque requête
-        // reparties d'un conteneur neuf, ce réglage n'a jamais le temps de
-        // fuir ; ici le même conteneur sert tout le test, donc sans le
-        // restaurer explicitement, Auth::validate() de la requête suivante
-        // s'exécute sur RequestGuard (sanctum) au lieu de SessionGuard (web).
-        Auth::forgetGuards();
-        Auth::shouldUse('web');
 
         // C'est toute la raison d'être de la fonctionnalité : se déconnecter ne
         // doit pas obliger à ressortir son téléphone à la connexion suivante.
