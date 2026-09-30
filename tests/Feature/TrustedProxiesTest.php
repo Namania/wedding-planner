@@ -25,4 +25,33 @@ class TrustedProxiesTest extends TestCase
             ->assertOk()
             ->assertJsonPath('ip', '203.0.113.42');
     }
+
+    /**
+     * La chaîne réelle en production compte plusieurs sauts : Cloudflare,
+     * Traefik, puis nginx. Chacun ajoute son adresse à X-Forwarded-For. Faire
+     * confiance au seul appelant direct s'arrêterait sur Traefik, et tout le
+     * monde aurait la même IP — c'est ce que faisait `at: '*'`.
+     */
+    public function test_every_private_hop_of_the_chain_is_skipped(): void
+    {
+        Route::get('api/_test/ip', fn (Request $request) => ['ip' => $request->ip()]);
+
+        $this->getJson('/api/_test/ip', ['X-Forwarded-For' => '203.0.113.42, 172.18.0.5, 10.0.1.7'])
+            ->assertOk()
+            ->assertJsonPath('ip', '203.0.113.42');
+    }
+
+    /**
+     * Le contrepoint : on ne prend pas aveuglément l'adresse la plus à gauche,
+     * qu'un client peut écrire lui-même. On s'arrête au premier saut qui n'est
+     * pas un proxy de confiance.
+     */
+    public function test_a_public_hop_stops_the_walk(): void
+    {
+        Route::get('api/_test/ip', fn (Request $request) => ['ip' => $request->ip()]);
+
+        $this->getJson('/api/_test/ip', ['X-Forwarded-For' => '203.0.113.42, 198.51.100.9'])
+            ->assertOk()
+            ->assertJsonPath('ip', '198.51.100.9');
+    }
 }

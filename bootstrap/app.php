@@ -17,27 +17,20 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Derrière le Traefik de Dokploy, les conteneurs ne sont joignables que
-        // par le réseau interne : compose.prod.yml les déclare en `expose`
-        // seul, jamais en `ports`. Aucune requête ne peut donc atteindre
-        // l'application sans passer par le proxy, et faire confiance à tous les
-        // proxys revient à faire confiance à ce seul proxy — dont l'adresse
-        // change à chaque redéploiement, ce qui rendrait une liste blanche
-        // d'IP illusoire à maintenir.
+        // Toute la chaîne de proxys en production est privée : Traefik (Dokploy)
+        // puis nginx (image front). Chacun ajoute son adresse à X-Forwarded-For.
         //
-        // Sans cela, $request->ip() renvoie l'adresse interne du proxy, la même
-        // pour tout le monde : la colonne IP de l'écran de révocation des
-        // appareils n'aurait plus aucune valeur, et toutes les limitations de
-        // débit indexées sur l'IP (connexion admin, 2FA, galerie) seraient en
-        // réalité globales — un seul visiteur pourrait verrouiller tout le
-        // monde.
+        // `at: '*'` ne ferait confiance qu'à l'appelant direct — nginx — et la
+        // remontée s'arrêterait sur Traefik : tout le monde aurait la même IP, les
+        // seaux de débit indexés dessus seraient globaux, et un seul visiteur
+        // pourrait verrouiller la connexion admin. En listant les plages privées,
+        // tous les sauts internes sont sautés et on s'arrête sur la première
+        // adresse publique, celle du client.
         //
-        // Ce réglage serait dangereux si les conteneurs étaient exposés
-        // directement : n'importe qui pourrait alors envoyer un en-tête
-        // X-Forwarded-For de son choix, se donner une IP différente à chaque
-        // requête pour contourner les limitations de débit, brouiller les
-        // journaux et falsifier l'IP enregistrée avec un appareil de confiance.
-        $middleware->trustProxies(at: '*', headers: Request::HEADER_X_FORWARDED_FOR
+        // Ce réglage n'est sûr que parce que les conteneurs ne sont joignables que
+        // par le réseau interne (`expose` seul dans compose.prod.yml) : un client
+        // direct pourrait sinon forger X-Forwarded-For.
+        $middleware->trustProxies(at: ['127.0.0.0/8', '10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16'], headers: Request::HEADER_X_FORWARDED_FOR
             | Request::HEADER_X_FORWARDED_HOST
             | Request::HEADER_X_FORWARDED_PORT
             | Request::HEADER_X_FORWARDED_PROTO);
