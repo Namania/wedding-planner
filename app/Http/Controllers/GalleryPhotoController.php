@@ -7,6 +7,7 @@ use App\Models\GalleryPhoto;
 use App\Models\GallerySettings;
 use App\Services\GalleryPhotoProcessor;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use OpenApi\Attributes as OA;
@@ -133,6 +134,18 @@ class GalleryPhotoController extends Controller
     public function file(GalleryPhoto $photo, string $variant)
     {
         abort_unless(in_array($variant, ['thumb', 'full'], true), 404);
+
+        // Masquer doit retirer la photo pour de bon. Sans ce contrôle, toute
+        // URL signée déjà émise — ou diffusée aux invités au moment même du
+        // masquage — continuerait de la servir jusqu'à expiration de la
+        // signature. Seuls les mariés peuvent encore la voir, depuis l'écran
+        // d'administration, pour décider de la rétablir ou de la supprimer.
+        // La route n'a pas de middleware d'authentification : la garde `web`
+        // est interrogée directement, la session étant démarrée par Sanctum
+        // pour toute requête venant du SPA.
+        if ($photo->isHidden() && ! Auth::guard('web')->user()?->isAdmin()) {
+            abort(404);
+        }
 
         $path = $variant === 'thumb' ? $photo->thumb_path : $photo->path;
         $disk = Storage::disk(config('gallery.disk'));

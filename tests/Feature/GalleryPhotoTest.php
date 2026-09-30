@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use Laravel\Sanctum\Sanctum;
 use PHPUnit\Framework\Attributes\RequiresPhpExtension;
 use Tests\TestCase;
@@ -133,5 +134,59 @@ class GalleryPhotoTest extends TestCase
 
         $this->assertTrue($guest->fresh()->isBanned());
         $this->assertSame(0, GalleryPhoto::visible()->count());
+    }
+
+    private function signedFileUrl(GalleryPhoto $photo, string $variant = 'full'): string
+    {
+        Storage::disk('local')->put($photo->path, 'jpeg-factice');
+        Storage::disk('local')->put($photo->thumb_path, 'jpeg-factice');
+
+        return URL::temporarySignedRoute('gallery.photos.file', now()->addHour(), [
+            'photo' => $photo->getKey(),
+            'variant' => $variant,
+        ]);
+    }
+
+    /**
+     * Masquer une photo doit la retirer pour de bon : une URL signée émise
+     * avant le masquage — ou diffusée à tous les invités au moment du
+     * masquage — ne doit plus servir l'image. Sans ce contrôle, la modération
+     * est inopérante pendant toute la durée de validité de la signature.
+     */
+    public function test_a_hidden_photo_is_no_longer_served_even_with_a_valid_signature(): void
+    {
+        $photo = GalleryPhoto::factory()->hidden()->create();
+
+        $this->get($this->signedFileUrl($photo))->assertNotFound();
+        $this->get($this->signedFileUrl($photo, 'thumb'))->assertNotFound();
+    }
+
+    public function test_a_visible_photo_is_served_with_a_valid_signature(): void
+    {
+        $photo = GalleryPhoto::factory()->create();
+
+        $this->get($this->signedFileUrl($photo))->assertOk();
+    }
+
+    /**
+     * Les mariés doivent pouvoir regarder une photo masquée depuis l'écran
+     * d'administration, pour décider de la rétablir ou de la supprimer.
+     */
+    public function test_an_admin_can_still_view_a_hidden_photo(): void
+    {
+        $photo = GalleryPhoto::factory()->hidden()->create();
+
+        $this->actingAs(User::factory()->create())
+            ->get($this->signedFileUrl($photo))
+            ->assertOk();
+    }
+
+    public function test_a_guest_cannot_view_a_hidden_photo_through_their_session(): void
+    {
+        $photo = GalleryPhoto::factory()->hidden()->create();
+
+        $this->actingAs(User::factory()->guest()->create())
+            ->get($this->signedFileUrl($photo))
+            ->assertNotFound();
     }
 }
