@@ -2,6 +2,7 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import { useAuthStore } from '@/stores/auth'
 import AnimationsView from '@/views/AnimationsView.vue'
 import BudgetView from '@/views/BudgetView.vue'
+import ExpensesView from '@/views/ExpensesView.vue'
 import CaterersView from '@/views/CaterersView.vue'
 import DashboardView from '@/views/DashboardView.vue'
 import FloristsView from '@/views/FloristsView.vue'
@@ -69,6 +70,12 @@ const router = createRouter({
           path: 'budget',
           name: 'budget',
           component: BudgetView,
+          meta: { requiresAuth: true },
+        },
+        {
+          path: 'expenses',
+          name: 'expenses',
+          component: ExpensesView,
           meta: { requiresAuth: true },
         },
         {

@@ -412,6 +412,176 @@
                 }
             }
         },
+        "/api/expenses": {
+            "get": {
+                "tags": [
+                    "Expenses"
+                ],
+                "summary": "Dépenses réalisées",
+                "operationId": "9b702aa9314d471a9de3a121e5183c88",
+                "responses": {
+                    "200": {
+                        "description": "Dépenses réalisées, de la plus récente à la plus ancienne",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Expense"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Expenses"
+                ],
+                "summary": "Enregistrer une dépense",
+                "operationId": "a764a04e6d047ab02a68f06c706e67f3",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ExpenseInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Dépense créée",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Expense"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    }
+                }
+            }
+        },
+        "/api/expenses/{expense}": {
+            "get": {
+                "tags": [
+                    "Expenses"
+                ],
+                "summary": "Détail d'une dépense",
+                "operationId": "4fb33b7003219889ff425d4d7e4da429",
+                "parameters": [
+                    {
+                        "name": "expense",
+                        "in": "path",
+                        "description": "ID de la dépense",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dépense trouvée",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Expense"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Dépense introuvable"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Expenses"
+                ],
+                "summary": "Modifier une dépense",
+                "operationId": "6769ae6dcdd82c067d7d644c5f55ad61",
+                "parameters": [
+                    {
+                        "name": "expense",
+                        "in": "path",
+                        "description": "ID de la dépense",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ExpenseInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Dépense mise à jour",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Expense"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Dépense introuvable"
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Expenses"
+                ],
+                "summary": "Supprimer une dépense",
+                "operationId": "cb05fc84a7b66979ff8fe43b62e784f3",
+                "parameters": [
+                    {
+                        "name": "expense",
+                        "in": "path",
+                        "description": "ID de la dépense",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dépense supprimée",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Expense"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Dépense introuvable"
+                    }
+                }
+            }
+        },
         "/api/florists": {
             "get": {
                 "tags": [
@@ -2866,6 +3036,59 @@
                 },
                 "type": "object"
             },
+            "Expense": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "amount": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 1250.5
+                    },
+                    "note": {
+                        "type": "string",
+                        "example": "Acompte traiteur"
+                    },
+                    "paid_by": {
+                        "type": "string",
+                        "example": "Margaux"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "ExpenseInput": {
+                "required": [
+                    "amount",
+                    "note",
+                    "paid_by"
+                ],
+                "properties": {
+                    "amount": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 1250.5,
+                        "minimum": 0,
+                        "exclusiveMinimum": true
+                    },
+                    "note": {
+                        "type": "string",
+                        "example": "Acompte traiteur",
+                        "maxLength": 255
+                    },
+                    "paid_by": {
+                        "type": "string",
+                        "example": "Margaux",
+                        "maxLength": 80
+                    }
+                },
+                "type": "object"
+            },
             "Florist": {
                 "properties": {
                     "id": {
@@ -3740,6 +3963,10 @@
         {
             "name": "Dashboard",
             "description": "Dashboard"
+        },
+        {
+            "name": "Expenses",
+            "description": "Expenses"
         },
         {
             "name": "Florists",

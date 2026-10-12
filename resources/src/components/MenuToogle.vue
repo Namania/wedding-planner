@@ -32,6 +32,12 @@
                     <i class="pi pi-wallet"></i> <span>Budget</span>
                 </router-link>
 
+                <router-link to="/expenses" @click="visible = false"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-color hover:bg-surface-100 dark:hover:bg-surface-800 font-medium transition-all"
+                    exact-active-class="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 !font-semibold">
+                    <i class="pi pi-receipt"></i> <span>Dépenses</span>
+                </router-link>
+
                 <router-link to="/tasks" @click="visible = false"
                     class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-color hover:bg-surface-100 dark:hover:bg-surface-800 font-medium transition-all"
                     exact-active-class="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 !font-semibold">

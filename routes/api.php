@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CatererController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\FloristController;
 use App\Http\Controllers\GalleryAdminController;
 use App\Http\Controllers\GalleryAuthController;
@@ -93,6 +94,7 @@ Route::middleware(['auth:sanctum', 'admin.user', 'remember.rotate'])->group(func
 
     Route::get('budget', [BudgetController::class, 'show']);
     Route::put('budget', [BudgetController::class, 'update']);
+    Route::apiResource('expenses', ExpenseController::class);
 
     Route::get('wedding', [WeddingController::class, 'show']);
     Route::put('wedding', [WeddingController::class, 'update']);
