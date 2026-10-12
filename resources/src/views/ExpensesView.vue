@@ -184,12 +184,13 @@ const payerSegments = computed<BudgetMeterSegment[]>(() => {
 
     const others: BudgetMeterSegment = { key: 'others', label: 'Autres', amount: sumFor((p) => !isSpouse(p)), dotClass: 'bg-amber-500', strokeClass: 'stroke-amber-500' }
 
-    // « Autres » n'apparaît que si quelqu'un d'autre que les mariés a payé.
+    // Un payeur n'apparaît dans la jauge et sa légende que s'il a payé
+    // quelque chose : un segment à 0 € n'apporte rien.
     return [
         { key: 'spouse-1', label: first || 'Marié·e 1', amount: first ? sumFor((p) => p === normalize(first)) : 0, dotClass: 'bg-indigo-500', strokeClass: 'stroke-indigo-500' },
         { key: 'spouse-2', label: second || 'Marié·e 2', amount: second ? sumFor((p) => p === normalize(second)) : 0, dotClass: 'bg-pink-500', strokeClass: 'stroke-pink-500' },
-        ...(others.amount > 0 ? [others] : []),
-    ]
+        others,
+    ].filter((segment) => segment.amount > 0)
 })
 
 // Les mariés d'abord, puis les autres payeurs déjà saisis, filtrés par ce qui
