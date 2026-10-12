@@ -182,10 +182,13 @@ const payerSegments = computed<BudgetMeterSegment[]>(() => {
 
     const isSpouse = (payer: string) => spouseNames.value.some((name) => normalize(name) === payer)
 
+    const others: BudgetMeterSegment = { key: 'others', label: 'Autres', amount: sumFor((p) => !isSpouse(p)), dotClass: 'bg-amber-500', strokeClass: 'stroke-amber-500' }
+
+    // « Autres » n'apparaît que si quelqu'un d'autre que les mariés a payé.
     return [
         { key: 'spouse-1', label: first || 'Marié·e 1', amount: first ? sumFor((p) => p === normalize(first)) : 0, dotClass: 'bg-indigo-500', strokeClass: 'stroke-indigo-500' },
         { key: 'spouse-2', label: second || 'Marié·e 2', amount: second ? sumFor((p) => p === normalize(second)) : 0, dotClass: 'bg-pink-500', strokeClass: 'stroke-pink-500' },
-        { key: 'others', label: 'Autres', amount: sumFor((p) => !isSpouse(p)), dotClass: 'bg-amber-500', strokeClass: 'stroke-amber-500' },
+        ...(others.amount > 0 ? [others] : []),
     ]
 })
 
