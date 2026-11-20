@@ -6,7 +6,7 @@
 #
 # Build depuis la racine du dépôt : docker build -f .docker/back/Dockerfile .
 
-FROM dunglas/frankenphp:1-php8.5-alpine
+FROM dunglas/frankenphp:1-php8.5.13-alpine
 
 RUN install-php-extensions \
     pdo_pgsql \
